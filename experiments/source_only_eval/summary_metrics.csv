@@ -1,0 +1,4 @@
+variant,source_val_auc,target_test_auc,source_val_n,target_test_n
+raw_only,0.5912499999999999,0.60875,80,80
+tfr_only,0.62625,0.605,80,80
+fused,0.65375,0.639375,80,80

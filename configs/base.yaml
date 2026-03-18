@@ -1,0 +1,44 @@
+seed: 42
+
+data:
+  raw_records_csv: data/raw/records.csv
+  processed_dir: data/processed
+  manifest_path: data/processed/manifest.csv
+  window_size: 2048
+  stride: 512
+  drop_last: true
+
+representation:
+  normalize_raw: true
+  use_tfr: true
+  tfr_type: stft
+  n_fft: 256
+  hop_length: 64
+  win_length: 256
+  log_amplitude: true
+  normalize_tfr: false
+
+training:
+  batch_size: 16
+  num_workers: 0
+  pin_memory: false
+  epochs: 20
+  lr: 0.001
+  weight_decay: 0.0001
+  threshold: 0.5
+  device: auto
+
+model:
+  use_raw: true
+  use_tfr: true
+  raw_embedding_dim: 64
+  tfr_embedding_dim: 64
+  fused_dim: 64
+  dropout: 0.1
+
+evaluation:
+  normal_label: 0
+  distance: l2
+
+outputs:
+  source_only_dir: experiments/source_only_supervised
