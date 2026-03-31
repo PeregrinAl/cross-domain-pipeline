@@ -42,3 +42,18 @@ evaluation:
 
 outputs:
   source_only_dir: experiments/source_only_supervised
+  sfda_dir: experiments/day6_sfda
+
+sfda:
+  variant: fused
+  adapt_split: adapt
+  epochs: 10
+  lr: 0.0003
+  weight_decay: 0.00001
+  batch_size: 8
+  selection_quantile: 0.3
+  min_selected: 8
+  align_weight: 1.0
+  pseudo_label_weight: 0.1
+  consistency_quantile: 0.4
+  agreement_margin_quantile: 0.5
