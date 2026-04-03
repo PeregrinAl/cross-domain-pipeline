@@ -179,7 +179,7 @@ def main():
                 "label": 0,  # record-level label
                 "domain": "source",
                 "record_id": f"src_val_norm_{i}",
-                "split": "train",
+                "split": "val",
                 "anomaly_intervals": to_intervals_json([]),
             }
         )
@@ -208,7 +208,7 @@ def main():
             "label": 1,
             "domain": "source",
             "record_id": "src_val_anom_spike_0",
-            "split": "train",
+            "split": "val",
             "anomaly_intervals": to_intervals_json([(spike_start, spike_start + spike_width)]),
         }
     )
@@ -240,7 +240,7 @@ def main():
             "label": 1,
             "domain": "source",
             "record_id": "src_val_anom_burst_0",
-            "split": "train",
+            "split": "val",
             "anomaly_intervals": to_intervals_json([(burst_start, burst_start + burst_width)]),
         }
     )
@@ -298,9 +298,9 @@ def main():
         {
             "path": str(path).replace("\\", "/"),
             "label": 1,
-            "domain": "source",
+            "domain": "target",
             "record_id": "tgt_test_anom_spike_0",
-            "split": "train",
+            "split": "test",
             "anomaly_intervals": to_intervals_json([(spike_start, spike_start + spike_width)]),
         }
     )
@@ -331,9 +331,9 @@ def main():
         {
             "path": str(path).replace("\\", "/"),
             "label": 1,
-            "domain": "source",
+            "domain": "target",
             "record_id": "tgt_test_anom_burst_0",
-            "split": "train",
+            "split": "test",
             "anomaly_intervals": to_intervals_json([(burst_start, burst_start + burst_width)]),
         }
     )
@@ -358,9 +358,9 @@ def main():
         {
             "path": str(path).replace("\\", "/"),
             "label": 0,  # record-level label
-            "domain": "source",
+            "domain": "target",
             "record_id": f"target_adapt_unlabeled_{i}",
-            "split": "train",
+            "split": "adapt",
             "anomaly_intervals": to_intervals_json([]),
         }
     )
