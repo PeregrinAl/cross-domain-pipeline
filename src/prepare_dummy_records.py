@@ -1,7 +1,12 @@
+import json
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+
+def to_intervals_json(intervals):
+    return json.dumps([[int(start), int(end)] for start, end in intervals])
 
 
 def make_base_signal(
@@ -82,13 +87,15 @@ def main():
         path = raw_dir / f"source_train_normal_{i}.npy"
         save_signal(path, x)
 
+        # для normal record
         rows.append(
             {
                 "path": str(path).replace("\\", "/"),
-                "label": 0,
+                "label": 0,  # record-level label
                 "domain": "source",
                 "record_id": f"src_train_norm_{i}",
                 "split": "train",
+                "anomaly_intervals": to_intervals_json([]),
             }
         )
 
@@ -101,7 +108,11 @@ def main():
         sinus_freq=3.0,
         sinus_amp=0.15,
     )
-    x = inject_spike_anomaly(x, start=3000, width=180, amplitude=4.5)
+    spike_start = 3000
+    spike_width = 180
+    amplitude = 4.5
+
+    x = inject_spike_anomaly(x, start=spike_start, width=spike_width, amplitude=amplitude)
     path = raw_dir / "source_train_anomaly_spike_0.npy"
     save_signal(path, x)
 
@@ -112,6 +123,7 @@ def main():
             "domain": "source",
             "record_id": "src_train_anom_spike_0",
             "split": "train",
+            "anomaly_intervals": to_intervals_json([(spike_start, spike_start + spike_width)]),
         }
     )
 
@@ -124,7 +136,12 @@ def main():
         sinus_freq=3.0,
         sinus_amp=0.15,
     )
-    x = inject_burst_anomaly(x, start=7600, width=320, amplitude=3.0, cycles=18.0)
+
+    # для burst anomaly
+    burst_start = 7600
+    burst_width = 320
+    x = inject_burst_anomaly(x, start=burst_start, width=burst_width, amplitude=3.0, cycles=18.0)
+    
     path = raw_dir / "source_train_anomaly_burst_0.npy"
     save_signal(path, x)
 
@@ -135,6 +152,7 @@ def main():
             "domain": "source",
             "record_id": "src_train_anom_burst_0",
             "split": "train",
+            "anomaly_intervals": to_intervals_json([(burst_start, burst_start + burst_width)]),
         }
     )
 
@@ -154,13 +172,15 @@ def main():
         path = raw_dir / f"source_val_normal_{i}.npy"
         save_signal(path, x)
 
+        # для normal record
         rows.append(
             {
                 "path": str(path).replace("\\", "/"),
-                "label": 0,
+                "label": 0,  # record-level label
                 "domain": "source",
                 "record_id": f"src_val_norm_{i}",
-                "split": "val",
+                "split": "train",
+                "anomaly_intervals": to_intervals_json([]),
             }
         )
 
@@ -173,8 +193,13 @@ def main():
         sinus_freq=3.0,
         sinus_amp=0.15,
     )
-    x = inject_spike_anomaly(x, start=4200, width=180, amplitude=4.5)
-    path = raw_dir / "source_val_anomaly_spike.npy"
+    
+    spike_start = 4200
+    spike_width = 180
+    amplitude = 4.5
+
+    x = inject_spike_anomaly(x, start=spike_start, width=spike_width, amplitude=amplitude)
+    path = raw_dir / "source_val_anomaly_spike_0.npy"
     save_signal(path, x)
 
     rows.append(
@@ -182,8 +207,9 @@ def main():
             "path": str(path).replace("\\", "/"),
             "label": 1,
             "domain": "source",
-            "record_id": "src_val_anom_spike",
-            "split": "val",
+            "record_id": "src_val_anom_spike_0",
+            "split": "train",
+            "anomaly_intervals": to_intervals_json([(spike_start, spike_start + spike_width)]),
         }
     )
 
@@ -196,8 +222,16 @@ def main():
         sinus_freq=3.0,
         sinus_amp=0.15,
     )
-    x = inject_burst_anomaly(x, start=7000, width=320, amplitude=3.0, cycles=18.0)
-    path = raw_dir / "source_val_anomaly_burst.npy"
+
+    # для burst anomaly
+    burst_start = 7000
+    burst_width = 320
+    cycles = 18.0
+    amplitude = 3.0
+
+    x = inject_burst_anomaly(x, start=burst_start, width=burst_width, amplitude=amplitude, cycles=cycles)
+    
+    path = raw_dir / "source_val_anomaly_burst_0.npy"
     save_signal(path, x)
 
     rows.append(
@@ -205,8 +239,9 @@ def main():
             "path": str(path).replace("\\", "/"),
             "label": 1,
             "domain": "source",
-            "record_id": "src_val_anom_burst",
-            "split": "val",
+            "record_id": "src_val_anom_burst_0",
+            "split": "train",
+            "anomaly_intervals": to_intervals_json([(burst_start, burst_start + burst_width)]),
         }
     )
 
@@ -250,17 +285,23 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
-    x = inject_spike_anomaly(x, start=3500, width=220, amplitude=4.0)
-    path = raw_dir / "target_test_anomaly_spike.npy"
+
+    spike_start = 3500
+    spike_width = 220
+    amplitude = 4.0
+
+    x = inject_spike_anomaly(x, start=spike_start, width=spike_width, amplitude=amplitude)
+    path = raw_dir / "target_test_anomaly_spike_0.npy"
     save_signal(path, x)
 
     rows.append(
         {
             "path": str(path).replace("\\", "/"),
             "label": 1,
-            "domain": "target",
-            "record_id": "tgt_test_anom_spike",
-            "split": "test",
+            "domain": "source",
+            "record_id": "tgt_test_anom_spike_0",
+            "split": "train",
+            "anomaly_intervals": to_intervals_json([(spike_start, spike_start + spike_width)]),
         }
     )
 
@@ -273,17 +314,27 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
-    x = inject_burst_anomaly(x, start=8200, width=360, amplitude=2.8, cycles=20.0)
-    path = raw_dir / "target_test_anomaly_burst.npy"
+
+
+    # для burst anomaly
+    burst_start = 8200
+    burst_width = 360
+    cycles = 20.0
+    amplitude = 2.8
+
+    x = inject_burst_anomaly(x, start=burst_start, width=burst_width, amplitude=amplitude, cycles=cycles)
+    
+    path = raw_dir / "target_test_anomaly_burst_0.npy"
     save_signal(path, x)
 
     rows.append(
         {
             "path": str(path).replace("\\", "/"),
             "label": 1,
-            "domain": "target",
-            "record_id": "tgt_test_anom_burst",
-            "split": "test",
+            "domain": "source",
+            "record_id": "tgt_test_anom_burst_0",
+            "split": "train",
+            "anomaly_intervals": to_intervals_json([(burst_start, burst_start + burst_width)]),
         }
     )
 
@@ -301,14 +352,16 @@ def main():
     )
     path = raw_dir / "target_adapt_unlabeled_0.npy"
     save_signal(path, x)
-
+    
+    # для normal record
     rows.append(
         {
             "path": str(path).replace("\\", "/"),
-            "label": 0,
-            "domain": "target",
-            "record_id": "tgt_adapt_0",
-            "split": "adapt",
+            "label": 0,  # record-level label
+            "domain": "source",
+            "record_id": f"target_adapt_unlabeled_{i}",
+            "split": "train",
+            "anomaly_intervals": to_intervals_json([]),
         }
     )
 

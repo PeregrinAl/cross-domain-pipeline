@@ -8,6 +8,10 @@ data:
   stride: 512
   drop_last: true
 
+  anomaly_intervals_column: anomaly_intervals
+  window_label_mode: any_overlap   # any_overlap | min_fraction
+  min_anomaly_fraction: 0.02
+
 representation:
   normalize_raw: true
   use_tfr: true
