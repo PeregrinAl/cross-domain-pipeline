@@ -1,0 +1,3 @@
+record_id,domain,split,gt_idx,gt_start,gt_end,gt_len
+tgt_test_anom_burst_0,target,test,0,8200,8560,360
+tgt_test_anom_spike_0,target,test,0,3500,3720,220

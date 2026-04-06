@@ -6,8 +6,10 @@ iou_0p000,0.0,default,1,1.0,0,1,raw_only,source_only,4,2,4,2,0,2,0.5,1.0,0.66666
 iou_0p000,0.0,default,1,1.0,0,1,tfr_only,source_only,4,2,4,2,0,2,0.5,1.0,0.6666666666666666,0.5,1.0,0.0,0.0,0.024626358695652176,1.0,0.024626358695652176,experiments/event_level/iou_0p000/source_only/tfr_only/summary.json
 iou_0p050,0.05,default,1,1.0,0,1,fused,sfda_after,4,2,1,1,1,0,1.0,0.5,0.6666666666666666,0.0,0.0,0.0,0.0,0.06138392857142857,1.0,0.06138392857142857,experiments/event_level/iou_0p050/sfda_after/fused/summary.json
 iou_0p050,0.05,smooth_1__hyst_1p000__gap_0__minlen_1,1,1.0,0,1,fused,sfda_after,4,2,1,1,1,0,1.0,0.5,0.6666666666666666,0.0,0.0,0.0,0.0,0.06138392857142857,1.0,0.06138392857142857,experiments/event_level/iou_0p050/smooth_1__hyst_1p000__gap_0__minlen_1/sfda_after/fused/summary.json
+iou_0p050,0.05,smooth_5__hyst_0p850__gap_512__minlen_1,5,0.85,512,1,fused,sfda_after,4,2,1,0,2,1,0.0,0.0,0.0,0.25,0.0,,,,,,experiments/event_level/iou_0p050/smooth_5__hyst_0p850__gap_512__minlen_1/sfda_after/fused/summary.json
 iou_0p050,0.05,default,1,1.0,0,1,fused,sfda_before,4,2,1,1,1,0,1.0,0.5,0.6666666666666666,0.0,0.0,0.0,0.0,0.07161458333333333,1.0,0.07161458333333333,experiments/event_level/iou_0p050/sfda_before/fused/summary.json
 iou_0p050,0.05,default,1,1.0,0,1,fused,source_only,4,2,4,0,2,4,0.0,0.0,0.0,1.0,1.0,,,,,,experiments/event_level/iou_0p050/source_only/fused/summary.json
 iou_0p050,0.05,smooth_1__hyst_1p000__gap_0__minlen_1,1,1.0,0,1,fused,source_only,4,2,4,0,2,4,0.0,0.0,0.0,1.0,1.0,,,,,,experiments/event_level/iou_0p050/smooth_1__hyst_1p000__gap_0__minlen_1/source_only/fused/summary.json
+iou_0p050,0.05,smooth_5__hyst_0p850__gap_512__minlen_1,5,0.85,512,1,fused,source_only,4,2,4,0,2,4,0.0,0.0,0.0,1.0,1.0,,,,,,experiments/event_level/iou_0p050/smooth_5__hyst_0p850__gap_512__minlen_1/source_only/fused/summary.json
 iou_0p050,0.05,default,1,1.0,0,1,raw_only,source_only,4,2,4,0,2,4,0.0,0.0,0.0,1.0,1.0,,,,,,experiments/event_level/iou_0p050/source_only/raw_only/summary.json
 iou_0p050,0.05,default,1,1.0,0,1,tfr_only,source_only,4,2,4,0,2,4,0.0,0.0,0.0,1.0,1.0,,,,,,experiments/event_level/iou_0p050/source_only/tfr_only/summary.json
