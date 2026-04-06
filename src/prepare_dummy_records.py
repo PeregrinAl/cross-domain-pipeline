@@ -351,7 +351,13 @@ def main():
             sinus_freq=5.0,
             sinus_amp=0.25,
         )
-        x = apply_domain_shift(x, rng, target_shift_cfg)
+        x = apply_domain_shift(
+            x,
+            rng,
+            target_shift_cfg,
+            enable_frequency_shift=True,
+            enable_temporal_warp=True,
+        )
 
         path = raw_dir / f"target_test_normal_{i}.npy"
         save_signal(path, x)
@@ -375,7 +381,13 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
-    x = apply_domain_shift(x, rng, target_shift_cfg)
+    x = apply_domain_shift(
+        x,
+        rng,
+        target_shift_cfg,
+        enable_frequency_shift=True,
+        enable_temporal_warp=True,
+    )
 
     spike_start = 3500
     spike_width = 220
@@ -405,7 +417,13 @@ def main():
         sinus_amp=0.25,
     )
 
-    x = apply_domain_shift(x, rng, target_shift_cfg)
+    x = apply_domain_shift(
+        x,
+        rng,
+        target_shift_cfg,
+        enable_frequency_shift=True,
+        enable_temporal_warp=True,
+    )
 
     burst_start = 8200
     burst_width = 360
@@ -446,7 +464,13 @@ def main():
             sinus_freq=5.0,
             sinus_amp=0.25,
         )
-        x = apply_domain_shift(x, rng, target_shift_cfg)
+        x = apply_domain_shift(
+            x,
+            rng,
+            target_shift_cfg,
+            enable_frequency_shift=True,
+            enable_temporal_warp=True,
+        )
 
         path = raw_dir / f"target_adapt_normal_{i}.npy"
         save_signal(path, x)
@@ -471,7 +495,13 @@ def main():
         sinus_amp=0.25,
     )
 
-    x = apply_domain_shift(x, rng, target_shift_cfg)
+    x = apply_domain_shift(
+        x,
+        rng,
+        target_shift_cfg,
+        enable_frequency_shift=True,
+        enable_temporal_warp=True,
+    )
 
     adapt_spike_start = 5000
     adapt_spike_width = 220
@@ -507,8 +537,14 @@ def main():
         sinus_amp=0.25,
     )
 
-    x = apply_domain_shift(x, rng, target_shift_cfg)
-    
+    x = apply_domain_shift(
+        x,
+        rng,
+        target_shift_cfg,
+        enable_frequency_shift=True,
+        enable_temporal_warp=True,
+    )
+
     adapt_burst_start = 7600
     adapt_burst_width = 360
     x = inject_burst_anomaly(
