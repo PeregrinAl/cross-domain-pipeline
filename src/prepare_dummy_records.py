@@ -117,11 +117,12 @@ def apply_temporal_warp(
     y = np.interp(t, warped_t, x).astype(np.float32)
     return y
 
-
 def apply_domain_shift(
     x: np.ndarray,
     rng: np.random.Generator,
     shift_cfg: dict,
+    enable_frequency_shift: bool = True,
+    enable_temporal_warp: bool = False,
 ) -> np.ndarray:
     y = x.astype(np.float32)
 
@@ -134,13 +135,18 @@ def apply_domain_shift(
     y = apply_amplitude_scale(y, scale)
     y = apply_extra_noise(y, rng, shift_cfg["extra_noise_std"])
     y = apply_extra_trend(y, shift_cfg["extra_trend_strength"])
-    # y = apply_frequency_shift(
-    #     y,
-    #     rng,
-    #     shift_cfg["freq_multiplier_min"],
-    #     shift_cfg["freq_multiplier_max"],
-    # )
-    # y = apply_temporal_warp(y, rng, shift_cfg["temporal_warp_sigma"])
+
+    if enable_frequency_shift:
+        y = apply_frequency_shift(
+            y,
+            rng,
+            shift_cfg["freq_multiplier_min"],
+            shift_cfg["freq_multiplier_max"],
+        )
+
+    if enable_temporal_warp:
+        y = apply_temporal_warp(y, rng, shift_cfg["temporal_warp_sigma"])
+
     return y.astype(np.float32)
 
 def main():
@@ -369,12 +375,13 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
+    x = apply_domain_shift(x, rng, target_shift_cfg)
+
     spike_start = 3500
     spike_width = 220
     amplitude = 4.0
     x = inject_spike_anomaly(x, start=spike_start, width=spike_width, amplitude=amplitude)
-    x = apply_domain_shift(x, rng, target_shift_cfg)
-
+    
     path = raw_dir / "target_test_anomaly_spike_0.npy"
     save_signal(path, x)
     rows.append(
@@ -397,6 +404,9 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
+
+    x = apply_domain_shift(x, rng, target_shift_cfg)
+
     burst_start = 8200
     burst_width = 360
     cycles = 20.0
@@ -408,7 +418,7 @@ def main():
         amplitude=amplitude,
         cycles=cycles,
     )
-    x = apply_domain_shift(x, rng, target_shift_cfg)
+
 
     path = raw_dir / "target_test_anomaly_burst_0.npy"
     save_signal(path, x)
@@ -460,6 +470,9 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
+
+    x = apply_domain_shift(x, rng, target_shift_cfg)
+
     adapt_spike_start = 5000
     adapt_spike_width = 220
     x = inject_spike_anomaly(
@@ -468,7 +481,6 @@ def main():
         width=adapt_spike_width,
         amplitude=4.0,
     )
-    x = apply_domain_shift(x, rng, target_shift_cfg)
 
     path = raw_dir / "target_adapt_anomaly_spike_0.npy"
     save_signal(path, x)
@@ -494,6 +506,9 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
+
+    x = apply_domain_shift(x, rng, target_shift_cfg)
+    
     adapt_burst_start = 7600
     adapt_burst_width = 360
     x = inject_burst_anomaly(
@@ -503,7 +518,6 @@ def main():
         amplitude=2.8,
         cycles=20.0,
     )
-    x = apply_domain_shift(x, rng, target_shift_cfg)
 
     path = raw_dir / "target_adapt_anomaly_burst_0.npy"
     save_signal(path, x)
