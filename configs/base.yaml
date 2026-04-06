@@ -21,7 +21,7 @@ representation:
   log_amplitude: true
 
   normalize_tfr: false
-  tfr_normalization: zscore
+  tfr_normalization: none
 training:
   batch_size: 16
   num_workers: 0
