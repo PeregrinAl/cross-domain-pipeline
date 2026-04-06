@@ -1,93 +1,172 @@
-
 # Cross-Domain Anomaly Recognition MVP
 
-MVP for cross-domain anomaly recognition in non-stationary signals with:
+A compact research MVP for cross-domain anomaly recognition in non-stationary signals.
 
-- two signal views:
-  - raw temporal window
-  - time-frequency representation via STFT
-- source-only baseline
-- source-free domain adaptation
-- comparison of single-view and fused representations
+The repository implements a reproducible experimental pipeline for studying whether:
 
-## Objective
+1. a source-only anomaly model degrades under domain shift,
+2. source-free adaptation can recover part of the lost target-domain quality without access to source data during adaptation,
+3. fused multi-view representations are a meaningful basis for adaptation.
 
-The goal of this MVP is to demonstrate, in one reproducible experimental pipeline, that:
+The current setup uses synthetic `.npy` signals, PyTorch models, YAML configuration, and a fully scriptable pipeline.
 
-1. a source-only anomaly recognition model degrades under domain shift,
-2. source-free adaptation on the target domain can partially recover target quality without access to source data during adaptation,
-3. multi-view fused representations are a meaningful candidate for adaptation, even if they may be more sensitive to domain shift before adaptation.
+---
 
-## Current Status
+## Problem Setting
+
+The MVP studies anomaly recognition under domain shift in non-stationary signals.
+
+Each signal is transformed into overlapping windows. For each window, two complementary views are built:
+
+- raw temporal view,
+- time-frequency view based on STFT.
+
+These views are used in three source-only baselines:
+
+- `raw_only`
+- `tfr_only`
+- `fused`
+
+The fused model is then used as the basis for source-free domain adaptation on unlabeled target-domain windows.
+
+---
+
+## Current Scope
 
 Implemented:
 
-- project skeleton and reproducible config-driven pipeline
-- data preparation and window segmentation
-- raw and STFT representations
-- source-only baselines:
-  - `raw_only`
-  - `tfr_only`
-  - `fused`
-- target-domain evaluation with calibrated threshold
-- minimal source-free adaptation for the fused model
-- consistency-filtered adaptation variant
-- ablation summary
+- reproducible synthetic data generation,
+- interval-aware anomaly annotation at the record level,
+- window-level labeling based on overlap with anomaly intervals,
+- dataset and dataloader pipeline,
+- raw and STFT representations,
+- source-only training for `raw_only`, `tfr_only`, and `fused`,
+- source-only evaluation,
+- minimal source-free adaptation for the fused model,
+- window-size and stride sweep,
+- ablation summary generation.
 
-## Main Experimental Result
+Not implemented yet:
 
-### Source-only baselines
+- event-level evaluation,
+- stronger adaptation variants beyond the current minimal setup,
+- real-world datasets,
+- fully realistic temporal distortions with interval remapping.
 
-| Experiment | Source ROC-AUC | Target ROC-AUC | Source PR-AUC | Target PR-AUC |
-|---|---:|---:|---:|---:|
-| raw_only | 0.5781 | 0.6588 | 0.6630 | 0.6932 |
-| tfr_only | 0.6969 | 0.6531 | 0.7505 | 0.7228 |
-| fused | 0.6869 | 0.4700 | 0.7136 | 0.6094 |
+---
 
-### Adaptation results for fused model
-
-| Experiment | Source ROC-AUC | Target ROC-AUC | Source PR-AUC | Target PR-AUC |
-|---|---:|---:|---:|---:|
-| fused source_only | 0.6869 | 0.4700 | 0.7136 | 0.6094 |
-| fused + sfda_minimal | 0.6525 | 0.6200 | 0.7548 | 0.7185 |
-| fused + sfda_consistency | 0.6519 | 0.6169 | 0.7541 | 0.7173 |
-
-## Interpretation
-
-The current MVP supports the following conclusions:
-
-- In the source-only setting, the fused two-view model shows good source-domain quality but also the strongest degradation on the target domain.
-- Minimal source-free adaptation substantially improves target-domain ranking quality for the fused model:
-  - target ROC-AUC improves from **0.4700** to **0.6200**
-  - target PR-AUC improves from **0.6094** to **0.7185**
-- In the current toy setup, adding cross-view consistency filtering does not provide an additional measurable gain over the simpler adaptation loop.
-
-## Experimental Pipeline
+## Main Idea
 
 The implemented pipeline is:
 
-`Preprocessing -> Windowing -> Raw/STFT views -> Source-only baseline -> Source-free adaptation -> Ablation summary`
+`Raw signal -> Windowing -> Raw/STFT views -> Source-only training -> Source-only evaluation -> Source-free adaptation -> Ablation summary`
 
-### Source-only baseline
+The main scientific intention of the MVP is not to claim a production-ready method, but to provide a clean and reproducible experimental baseline for further work on cross-domain anomaly recognition in non-stationary signals.
 
-The source-only baseline contains:
+---
 
-- `RawEncoder`: 1D CNN for raw windows
-- `TFREncoder`: 2D CNN for STFT inputs
-- `FusionEncoder`: concatenation of branch embeddings followed by a fusion head
-- `SourceOnlyClassifier`: supervised anomaly classifier trained on source labels
+## Data Protocol
 
-### Source-free adaptation
+The repository uses a synthetic protocol with generated `.npy` signals.
 
-The minimal adaptation loop:
+### Splits
 
-1. loads the trained fused source-only model,
-2. computes a source normal prototype,
-3. selects low-score target windows as pseudo-normal samples,
-4. fine-tunes the fusion head on target adaptation data,
-5. evaluates performance before and after adaptation.
+- `source/train` — labeled source-domain training signals
+- `source/val` — labeled source-domain validation signals
+- `target/test` — labeled target-domain evaluation signals
+- `target/adapt` — unlabeled target-domain signals used during source-free adaptation
 
-## Project Structure
+### Record-Level Annotation
+
+Each raw signal record is described in `data/raw/records.csv`.
+
+Important fields:
+
+- `path`
+- `label`
+- `domain`
+- `record_id`
+- `split`
+- `anomaly_intervals`
+
+`anomaly_intervals` stores anomaly intervals for a record. Normal signals use an empty list.
+
+### Window-Level Annotation
+
+`data/processed/manifest.csv` contains one row per window.
+
+Important fields:
+
+- `path`
+- `label`
+- `record_label`
+- `domain`
+- `record_id`
+- `split`
+- `window_idx`
+- `start`
+- `end`
+- `overlap_samples`
+- `overlap_fraction`
+
+A window is labeled as anomalous only if it overlaps an annotated anomaly interval according to the configured labeling rule.
+
+This is more honest than record-level label inheritance, because anomalous records now contain both normal and anomalous windows.
+
+---
+
+## Domain Shift
+
+The current target-domain protocol includes controlled synthetic shift relative to the source domain.
+
+The target signals may differ by:
+
+- amplitude scaling,
+- additional noise,
+- additional trend drift.
+
+The code already contains placeholders for stronger distortions such as frequency shift and temporal warping, but these are currently disabled to avoid invalidating anomaly interval alignment.
+
+---
+
+## Models
+
+### Raw Branch
+
+`RawEncoder` is a one-dimensional convolutional encoder for raw signal windows.
+
+### Time-Frequency Branch
+
+`TFREncoder` is a two-dimensional convolutional encoder for STFT-based inputs.
+
+### Fusion Branch
+
+`FusionEncoder` combines embeddings from the raw and time-frequency branches.
+
+### Classifier
+
+`SourceOnlyClassifier` is trained in supervised fashion on source-domain labels.
+
+---
+
+## Source-Free Adaptation
+
+The current source-free adaptation pipeline is intentionally minimal.
+
+High-level procedure:
+
+1. load the trained fused source-only model,
+2. estimate a source-side normal prototype,
+3. score target adaptation windows,
+4. select low-score target windows as pseudo-normal candidates,
+5. fine-tune part of the fused model on target adaptation data,
+6. evaluate before and after adaptation.
+
+This keeps the MVP simple and makes it easier to see whether adaptation helps at all before introducing more complex strategies.
+
+---
+
+## Repository Structure
 
 ```text
 cross-domain-pipeline/
@@ -101,15 +180,11 @@ cross-domain-pipeline/
 │     ├─ manifest.csv
 │     └─ windows/
 ├─ experiments/
-│  ├─ source_only_supervised/
-│  │  ├─ raw_only/
-│  │  ├─ tfr_only/
-│  │  └─ fused/
-│  ├─ day5_evaluation/
-│  ├─ day6_sfda/
-│  ├─ day8_ablation/
-│  └─ ablation_inputs/
-├─ notebooks/
+│  ├─ source_only_training/
+│  ├─ source_only_eval/
+│  ├─ source_free_adaptation/
+│  ├─ ablation_summary/
+│  └─ window_sweep/
 ├─ src/
 │  ├─ data/
 │  │  ├─ dataset.py
@@ -126,52 +201,20 @@ cross-domain-pipeline/
 │  │  └─ seed.py
 │  ├─ prepare_dummy_records.py
 │  ├─ prepare_data.py
-│  ├─ train.py
+│  ├─ check_dataset.py
 │  ├─ train_source_only.py
 │  ├─ evaluate_source_only.py
-│  ├─ day5_evaluate.py
 │  ├─ adapt_source_free.py
-│  └─ day8_ablation_summary.py
+│  ├─ build_ablation_summary.py
+│  └─ window_sweep.py
 ├─ requirements.txt
-└─ README.md
-```
+├─ README.md
+└─ README_ru.md
+````
 
-## Data Protocol
-
-The current repository uses a reproducible toy protocol based on generated `.npy` signals.
-
-### Splits
-
-* `source/train`: source-domain training signals
-* `source/val`: source-domain validation signals
-* `target/test`: target-domain evaluation signals
-* `target/adapt`: unlabeled target-domain signals used for source-free adaptation
-
-### Processed manifest format
-
-Each row in `data/processed/manifest.csv` contains metadata for one window:
-
-* `path`
-* `label`
-* `domain`
-* `record_id`
-* `split`
-* `window_idx`
-* `start`
-* `end`
+---
 
 ## Installation
-
-Create a virtual environment and install dependencies.
-
-### Windows
-
-```bash
-py -3.11 -m venv .venv
-.\.venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
 
 ### macOS / Linux
 
@@ -182,24 +225,35 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+### Windows
+
+```bash
+py -3.11 -m venv .venv
+.\\.venv\\Scripts\\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+---
+
 ## Quick Start
 
-### 1. Prepare dummy raw signals
+### 1. Generate synthetic raw records
 
 ```bash
 python -m src.prepare_dummy_records
 ```
 
-### 2. Build windowed dataset and manifest
+### 2. Build windowed dataset and processed manifest
 
 ```bash
 python -m src.prepare_data
 ```
 
-### 3. Run smoke test
+### 3. Check dataset balance and integrity
 
 ```bash
-python -m src.train
+python -m src.check_dataset
 ```
 
 ### 4. Train source-only baselines
@@ -210,183 +264,143 @@ python -m src.train_source_only --variant tfr_only
 python -m src.train_source_only --variant fused
 ```
 
-### 5. Evaluate Day 5 metrics
+### 5. Evaluate source-only models
 
 ```bash
-python -m src.day5_evaluate
+python -m src.evaluate_source_only --variant raw_only
+python -m src.evaluate_source_only --variant tfr_only
+python -m src.evaluate_source_only --variant fused
 ```
 
-### 6. Run source-free adaptation for fused model
+### 6. Run source-free adaptation for the fused model
 
 ```bash
 python -m src.adapt_source_free
 ```
 
-### 7. Build Day 8 ablation summary
+### 7. Build ablation summary
 
 ```bash
-python -m src.day8_ablation_summary
+python -m src.build_ablation_summary
 ```
+
+### 8. Run window-size / stride sweep
+
+```bash
+python -m src.window_sweep
+```
+
+---
 
 ## Main Output Files
 
-### Source-only training
+### Raw data
 
-Saved under:
+* `data/raw/records.csv`
 
-```text
-experiments/source_only_supervised/<variant>/
-```
+### Processed data
 
-Contains:
+* `data/processed/manifest.csv`
 
-* `best.pt`
-* `history.csv`
-* `source_val_scores.csv`
-* `target_test_scores.csv`
+### Source-only training outputs
+
+* `experiments/source_only_training/raw_only/`
+* `experiments/source_only_training/tfr_only/`
+* `experiments/source_only_training/fused/`
+
+Typical files:
+
+* `model.pt`
 * `summary.json`
 
-### Day 5 evaluation
+### Source-only evaluation outputs
 
-Saved under:
+* `experiments/source_only_eval/`
 
-```text
-experiments/day5_evaluation/
-```
+### Adaptation outputs
 
-Contains:
+* `experiments/source_free_adaptation/fused/`
 
-* `day5_summary.csv`
-* score distribution plots
-* ROC curves
-* PR curves
+Typical files:
 
-### Day 6 adaptation
-
-Saved under:
-
-```text
-experiments/day6_sfda/fused/
-```
-
-Contains:
-
-* adapted checkpoint
-* adaptation history
-* before/after score files
 * `summary.json`
+* `adapt_history.csv`
 
-### Day 8 ablation
+### Sweep outputs
 
-Saved under:
+* `experiments/window_sweep/window_sweep_summary.csv`
 
-```text
-experiments/day8_ablation/
-```
+### Ablation outputs
 
-Contains:
+* `experiments/ablation_summary/ablation_summary.csv`
 
-* `ablation_summary.csv`
-* bar plots for target ROC-AUC and PR-AUC
-* source-vs-target scatter plot
-* before/after fused plots
+---
 
-## Limitations
+## How to Read Results
 
-This MVP currently has the following limitations:
+At the current stage, ranking-based metrics are more reliable than threshold-based metrics.
 
-* It uses a toy synthetic protocol rather than a full real-world benchmark.
-* Window labels inherit the label of the parent signal.
-* Threshold-based metrics are sensitive to score calibration after adaptation.
-* Cross-view consistency filtering has not shown additional benefit in the current setup.
-* The current adaptation loop is intentionally minimal and does not yet include more advanced pseudo-label filtering or uncertainty estimation.
+Most useful metrics:
+
+* ROC-AUC
+* PR-AUC
+
+Threshold-based metrics such as F1 may change substantially after adaptation because the score distribution can shift even when ranking quality remains strong.
+
+A good experimental pattern for this MVP is:
+
+* source-only quality is high on the source domain,
+* source-only quality degrades on the target domain,
+* source-free adaptation partially restores target-domain quality,
+* fused representation remains a meaningful adaptation candidate even if it is more sensitive to shift before adaptation.
+
+---
+
+## Current Limitations
+
+The repository is still an MVP and has several important limitations.
+
+* The dataset is synthetic.
+* The protocol is still relatively small.
+* Event-level metrics are not yet implemented.
+* The current target shift is still simplified.
+* Threshold calibration remains unstable across some runs.
+* Stronger temporal distortions are not yet enabled in the final protocol because interval remapping is not yet implemented.
+
+---
 
 ## Next Steps
 
 Planned next steps:
 
-* improve target adaptation split size and diversity
-* test stronger and more varied domain shifts
-* add event-level evaluation
-* refine score calibration after adaptation
-* optionally test CWT or wavelet multi-scale branch as a stretch goal
-* prepare a compact demo and slides
+1. strengthen the domain-shift protocol,
+2. improve adaptation with better pseudo-label selection and calibration,
+3. move from window-level evaluation to event-level evaluation,
+4. test on more realistic non-stationary signals,
+5. prepare a compact demonstration and slides.
 
-## Glossary
+---
 
-**Anomaly recognition**
-Detection of abnormal or non-normal signal behavior.
+## Reproducibility
 
-**Source domain**
-The domain on which the model is initially trained.
+The repository is designed as a config-driven experimental pipeline.
 
-**Target domain**
-A different domain where distribution shift is present and where transfer performance is evaluated.
+Main configuration file:
 
-**Domain shift**
-A change in signal statistics, noise, trend, scale, or frequency structure between source and target.
+* `configs/base.yaml`
 
-**Source-only model**
-A model trained only on source-domain data and applied to the target domain without adaptation.
+To keep experiments reproducible:
 
-**Source-free adaptation**
-Adaptation on the target domain without access to the original source training samples.
+* avoid editing multiple scripts at once,
+* change protocol parameters through config where possible,
+* store outputs in separate experiment directories,
+* compare runs using saved summaries rather than console logs only.
 
-**Non-stationary signal**
-A signal whose statistical or spectral properties change over time.
+---
 
-**Windowing**
-Splitting a long signal into shorter fixed-length segments.
+## Language
 
-**Raw view**
-The original temporal signal window used directly as model input.
+Russian documentation is available in `README_ru.md`.
 
-**TFR**
-Time-frequency representation. In this project, it is currently implemented as STFT magnitude.
 
-**STFT**
-Short-Time Fourier Transform. A time-frequency transform used to represent local spectral content.
-
-**Embedding**
-A learned feature vector produced by an encoder.
-
-**Fusion**
-Combination of multiple branch embeddings into one joint representation.
-
-**Prototype**
-A representative vector, often the mean embedding of normal source samples.
-
-**Pseudo-normal sample**
-A target-domain sample selected as likely normal based on model confidence or score filtering.
-
-**Ranking metrics**
-Metrics based on score ordering rather than a single threshold, such as ROC-AUC and PR-AUC.
-
-**ROC-AUC**
-Area under the ROC curve. Measures ranking quality across thresholds.
-
-**PR-AUC**
-Area under the precision-recall curve. Useful for anomaly or imbalanced settings.
-
-**F1 score**
-Threshold-based harmonic mean of precision and recall.
-
-**Consistency filtering**
-A pseudo-label selection strategy that keeps target samples only when multiple views or branches agree.
-
-## Reproducibility Note
-
-All experiments are intended to be run from a single config file:
-
-```text
-configs/base.yaml
-```
-
-The repository is structured so that the full experimental story can be reproduced:
-
-1. prepare data,
-2. train source-only baselines,
-3. evaluate target degradation,
-4. run source-free adaptation,
-5. summarize ablations.
-
+[1]: https://github.com/PeregrinAl/cross-domain-pipeline "GitHub - PeregrinAl/cross-domain-pipeline · GitHub"
