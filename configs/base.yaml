@@ -1,5 +1,4 @@
 seed: 42
-
 data:
   raw_records_csv: data/raw/records.csv
   processed_dir: data/processed
@@ -7,11 +6,9 @@ data:
   window_size: 2048
   stride: 512
   drop_last: true
-
   anomaly_intervals_column: anomaly_intervals
-  window_label_mode: any_overlap   # any_overlap | min_fraction
+  window_label_mode: any_overlap
   min_anomaly_fraction: 0.02
-
 representation:
   normalize_raw: true
   use_tfr: true
@@ -21,7 +18,6 @@ representation:
   win_length: 256
   log_amplitude: true
   normalize_tfr: false
-
 training:
   batch_size: 16
   num_workers: 0
@@ -31,7 +27,6 @@ training:
   weight_decay: 0.0001
   threshold: 0.5
   device: auto
-
 model:
   use_raw: true
   use_tfr: true
@@ -39,21 +34,18 @@ model:
   tfr_embedding_dim: 64
   fused_dim: 64
   dropout: 0.1
-
 evaluation:
   normal_label: 0
   distance: l2
-
 outputs:
   source_only_dir: experiments/source_only_supervised
   sfda_dir: experiments/day6_sfda
-
 sfda:
   variant: fused
   adapt_split: adapt
   epochs: 10
   lr: 0.0003
-  weight_decay: 0.00001
+  weight_decay: 1.0e-05
   batch_size: 8
   selection_quantile: 0.3
   min_selected: 8
