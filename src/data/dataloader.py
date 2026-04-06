@@ -7,22 +7,32 @@ from src.data.transforms import Compose, NormalizeRaw, AddSTFT
 
 def build_transform(config):
     transforms = []
+    representation_cfg = config["representation"]
 
-    if config["representation"].get("normalize_raw", True):
-        transforms.append(NormalizeRaw())
+    # Backward-compatible raw normalization handling
+    raw_normalization = representation_cfg.get("raw_normalization")
+    if raw_normalization is None:
+        raw_normalization = "zscore" if representation_cfg.get("normalize_raw", True) else "none"
 
-    if config["representation"].get("use_tfr", True):
-        tfr_type = config["representation"].get("tfr_type", "stft")
+    transforms.append(NormalizeRaw(mode=raw_normalization))
+
+    if representation_cfg.get("use_tfr", True):
+        tfr_type = representation_cfg.get("tfr_type", "stft")
         if tfr_type != "stft":
             raise NotImplementedError(f"Only STFT is supported now, got {tfr_type}")
 
+        # Backward-compatible TFR normalization handling
+        tfr_normalization = representation_cfg.get("tfr_normalization")
+        if tfr_normalization is None:
+            tfr_normalization = "zscore" if representation_cfg.get("normalize_tfr", False) else "none"
+
         transforms.append(
             AddSTFT(
-                n_fft=config["representation"]["n_fft"],
-                hop_length=config["representation"]["hop_length"],
-                win_length=config["representation"]["win_length"],
-                log_amplitude=config["representation"]["log_amplitude"],
-                normalize_tfr=config["representation"]["normalize_tfr"],
+                n_fft=representation_cfg["n_fft"],
+                hop_length=representation_cfg["hop_length"],
+                win_length=representation_cfg["win_length"],
+                log_amplitude=representation_cfg["log_amplitude"],
+                tfr_normalization=tfr_normalization,
             )
         )
 
@@ -31,7 +41,6 @@ def build_transform(config):
 
 def build_dataset(config, split: str, domain: str):
     transform = build_transform(config)
-
     manifest_path = config["data"].get("manifest_path", "data/processed/manifest.csv")
 
     dataset = SignalWindowDataset(
@@ -45,7 +54,6 @@ def build_dataset(config, split: str, domain: str):
 
 def build_dataloader(config, split: str, domain: str, shuffle: bool):
     dataset = build_dataset(config, split=split, domain=domain)
-
     dataloader = DataLoader(
         dataset,
         batch_size=config["training"]["batch_size"],

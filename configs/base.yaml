@@ -11,13 +11,17 @@ data:
   min_anomaly_fraction: 0.05
 representation:
   normalize_raw: true
+  raw_normalization: robust
+
   use_tfr: true
   tfr_type: stft
   n_fft: 256
   hop_length: 64
   win_length: 256
   log_amplitude: true
+
   normalize_tfr: false
+  tfr_normalization: none
 training:
   batch_size: 16
   num_workers: 0

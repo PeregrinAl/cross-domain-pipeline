@@ -5,28 +5,58 @@ import torch
 
 class NormalizeRaw:
     """
-    Per-window z-normalization for raw signal.
+    Per-window normalization for raw signal.
+
+    Supported modes:
+    - "none"
+    - "zscore"
+    - "robust"
+
     Expects sample["x_raw"] with shape [C, L].
     """
 
-    def __init__(self, eps: float = 1e-8):
+    def __init__(self, mode: str = "zscore", eps: float = 1e-8):
+        self.mode = mode
         self.eps = eps
+
+        allowed = {"none", "zscore", "robust"}
+        if self.mode not in allowed:
+            raise ValueError(f"Unsupported raw normalization mode: {self.mode}")
 
     def __call__(self, sample: Dict) -> Dict:
         x = sample["x_raw"]  # [C, L]
-        mean = x.mean(dim=-1, keepdim=True)
-        std = x.std(dim=-1, keepdim=True)
-        sample["x_raw"] = (x - mean) / (std + self.eps)
+
+        if self.mode == "none":
+            return sample
+
+        if self.mode == "zscore":
+            mean = x.mean(dim=-1, keepdim=True)
+            std = x.std(dim=-1, keepdim=True)
+            sample["x_raw"] = (x - mean) / (std + self.eps)
+            return sample
+
+        if self.mode == "robust":
+            median = x.median(dim=-1, keepdim=True).values
+
+            q1 = torch.quantile(x, 0.25, dim=-1, keepdim=True)
+            q3 = torch.quantile(x, 0.75, dim=-1, keepdim=True)
+            iqr = q3 - q1
+
+            sample["x_raw"] = (x - median) / (iqr + self.eps)
+            return sample
+
         return sample
 
 
 class AddSTFT:
     """
     Builds STFT magnitude representation from sample["x_raw"].
+
     Input:
-        sample["x_raw"] shape [1, L] or [C, L]
+    sample["x_raw"] shape [1, L] or [C, L]
+
     Output:
-        sample["x_tfr"] shape [1, F, T]
+    sample["x_tfr"] shape [1, F, T]
     """
 
     def __init__(
@@ -36,7 +66,7 @@ class AddSTFT:
         win_length: Optional[int] = None,
         log_amplitude: bool = True,
         power: float = 1.0,
-        normalize_tfr: bool = False,
+        tfr_normalization: str = "none",
         eps: float = 1e-8,
     ):
         self.n_fft = n_fft
@@ -44,8 +74,33 @@ class AddSTFT:
         self.win_length = win_length if win_length is not None else n_fft
         self.log_amplitude = log_amplitude
         self.power = power
-        self.normalize_tfr = normalize_tfr
+        self.tfr_normalization = tfr_normalization
         self.eps = eps
+
+        allowed = {"none", "zscore", "robust"}
+        if self.tfr_normalization not in allowed:
+            raise ValueError(
+                f"Unsupported TFR normalization mode: {self.tfr_normalization}"
+            )
+
+    def _normalize_tfr(self, mag: torch.Tensor) -> torch.Tensor:
+        if self.tfr_normalization == "none":
+            return mag
+
+        if self.tfr_normalization == "zscore":
+            mag_mean = mag.mean()
+            mag_std = mag.std()
+            return (mag - mag_mean) / (mag_std + self.eps)
+
+        if self.tfr_normalization == "robust":
+            mag_flat = mag.reshape(-1)
+            mag_median = mag_flat.median()
+            q1 = torch.quantile(mag_flat, 0.25)
+            q3 = torch.quantile(mag_flat, 0.75)
+            iqr = q3 - q1
+            return (mag - mag_median) / (iqr + self.eps)
+
+        return mag
 
     def __call__(self, sample: Dict) -> Dict:
         x = sample["x_raw"]  # [C, L]
@@ -80,10 +135,7 @@ class AddSTFT:
         if self.log_amplitude:
             mag = torch.log1p(mag)
 
-        if self.normalize_tfr:
-            mag_mean = mag.mean()
-            mag_std = mag.std()
-            mag = (mag - mag_mean) / (mag_std + self.eps)
+        mag = self._normalize_tfr(mag)
 
         sample["x_tfr"] = mag.unsqueeze(0)  # [1, F, T]
         return sample
