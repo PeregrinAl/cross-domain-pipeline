@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import yaml
 
 
 def to_intervals_json(intervals):
@@ -61,6 +62,86 @@ def save_signal(path: Path, x: np.ndarray):
     path.parent.mkdir(parents=True, exist_ok=True)
     np.save(path, x.astype(np.float32))
 
+def resample_to_length(x: np.ndarray, new_length: int) -> np.ndarray:
+    old_idx = np.linspace(0.0, 1.0, num=len(x), dtype=np.float32)
+    new_idx = np.linspace(0.0, 1.0, num=new_length, dtype=np.float32)
+    y = np.interp(new_idx, old_idx, x).astype(np.float32)
+    return y
+
+
+def apply_amplitude_scale(x: np.ndarray, scale: float) -> np.ndarray:
+    return (x * scale).astype(np.float32)
+
+
+def apply_extra_noise(
+    x: np.ndarray,
+    rng: np.random.Generator,
+    noise_std: float,
+) -> np.ndarray:
+    noise = rng.normal(0.0, noise_std, size=len(x)).astype(np.float32)
+    return (x + noise).astype(np.float32)
+
+
+def apply_extra_trend(x: np.ndarray, trend_strength: float) -> np.ndarray:
+    trend = np.linspace(0.0, trend_strength, num=len(x), dtype=np.float32)
+    return (x + trend).astype(np.float32)
+
+
+def apply_frequency_shift(
+    x: np.ndarray,
+    rng: np.random.Generator,
+    multiplier_min: float,
+    multiplier_max: float,
+) -> np.ndarray:
+    factor = float(rng.uniform(multiplier_min, multiplier_max))
+    warped = resample_to_length(x, max(8, int(len(x) / factor)))
+    y = resample_to_length(warped, len(x))
+    return y.astype(np.float32)
+
+
+def apply_temporal_warp(
+    x: np.ndarray,
+    rng: np.random.Generator,
+    sigma: float,
+) -> np.ndarray:
+    t = np.linspace(0.0, 1.0, num=len(x), dtype=np.float32)
+    anchors = np.linspace(0.0, 1.0, num=8, dtype=np.float32)
+    jitter = rng.normal(0.0, sigma, size=len(anchors)).astype(np.float32)
+
+    warped_anchors = np.clip(anchors + jitter, 0.0, 1.0)
+    warped_anchors[0] = 0.0
+    warped_anchors[-1] = 1.0
+    warped_anchors = np.maximum.accumulate(warped_anchors)
+
+    warped_t = np.interp(t, anchors, warped_anchors).astype(np.float32)
+    y = np.interp(t, warped_t, x).astype(np.float32)
+    return y
+
+
+def apply_domain_shift(
+    x: np.ndarray,
+    rng: np.random.Generator,
+    shift_cfg: dict,
+) -> np.ndarray:
+    y = x.astype(np.float32)
+
+    scale = float(
+        rng.uniform(
+            shift_cfg["amplitude_scale_min"],
+            shift_cfg["amplitude_scale_max"],
+        )
+    )
+    y = apply_amplitude_scale(y, scale)
+    y = apply_extra_noise(y, rng, shift_cfg["extra_noise_std"])
+    y = apply_extra_trend(y, shift_cfg["extra_trend_strength"])
+    y = apply_frequency_shift(
+        y,
+        rng,
+        shift_cfg["freq_multiplier_min"],
+        shift_cfg["freq_multiplier_max"],
+    )
+    y = apply_temporal_warp(y, rng, shift_cfg["temporal_warp_sigma"])
+    return y.astype(np.float32)
 
 def main():
     raw_dir = Path("data/raw")
@@ -70,6 +151,12 @@ def main():
     rows = []
 
     length = 12000
+
+    config_path = Path("configs/base.yaml")
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    target_shift_cfg = config["target_shift"]
 
     # ---------------------------
     # SOURCE TRAIN: normal + anomaly
@@ -246,12 +333,7 @@ def main():
     )
 
     # ---------------------------
-    # TARGET TEST: normal + anomaly with domain shift
-    # Domain shift:
-    # - mean shift
-    # - larger variance
-    # - stronger trend
-    # - different sinusoid
+    # TARGET TEST: normal + anomaly with stronger domain shift
     # ---------------------------
     for i in range(2):
         x = make_base_signal(
@@ -263,9 +345,10 @@ def main():
             sinus_freq=5.0,
             sinus_amp=0.25,
         )
+        x = apply_domain_shift(x, rng, target_shift_cfg)
+
         path = raw_dir / f"target_test_normal_{i}.npy"
         save_signal(path, x)
-
         rows.append(
             {
                 "path": str(path).replace("\\", "/"),
@@ -273,6 +356,7 @@ def main():
                 "domain": "target",
                 "record_id": f"tgt_test_norm_{i}",
                 "split": "test",
+                "anomaly_intervals": to_intervals_json([]),
             }
         )
 
@@ -285,15 +369,14 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
-
     spike_start = 3500
     spike_width = 220
     amplitude = 4.0
-
     x = inject_spike_anomaly(x, start=spike_start, width=spike_width, amplitude=amplitude)
+    x = apply_domain_shift(x, rng, target_shift_cfg)
+
     path = raw_dir / "target_test_anomaly_spike_0.npy"
     save_signal(path, x)
-
     rows.append(
         {
             "path": str(path).replace("\\", "/"),
@@ -314,19 +397,21 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
-
-
-    # для burst anomaly
     burst_start = 8200
     burst_width = 360
     cycles = 20.0
     amplitude = 2.8
+    x = inject_burst_anomaly(
+        x,
+        start=burst_start,
+        width=burst_width,
+        amplitude=amplitude,
+        cycles=cycles,
+    )
+    x = apply_domain_shift(x, rng, target_shift_cfg)
 
-    x = inject_burst_anomaly(x, start=burst_start, width=burst_width, amplitude=amplitude, cycles=cycles)
-    
     path = raw_dir / "target_test_anomaly_burst_0.npy"
     save_signal(path, x)
-
     rows.append(
         {
             "path": str(path).replace("\\", "/"),
@@ -339,8 +424,33 @@ def main():
     )
 
     # ---------------------------
-    # Optional target adaptation split for later SFDA
+    # TARGET ADAPT: mixed unlabeled target split for SFDA
     # ---------------------------
+    for i in range(2):
+        x = make_base_signal(
+            length=length,
+            rng=rng,
+            mean=0.25,
+            std=1.2,
+            trend_strength=0.12,
+            sinus_freq=5.0,
+            sinus_amp=0.25,
+        )
+        x = apply_domain_shift(x, rng, target_shift_cfg)
+
+        path = raw_dir / f"target_adapt_normal_{i}.npy"
+        save_signal(path, x)
+        rows.append(
+            {
+                "path": str(path).replace("\\", "/"),
+                "label": 0,
+                "domain": "target",
+                "record_id": f"tgt_adapt_norm_{i}",
+                "split": "adapt",
+                "anomaly_intervals": to_intervals_json([]),
+            }
+        )
+
     x = make_base_signal(
         length=length,
         rng=rng,
@@ -350,30 +460,65 @@ def main():
         sinus_freq=5.0,
         sinus_amp=0.25,
     )
-    path = raw_dir / "target_adapt_unlabeled_0.npy"
+    adapt_spike_start = 5000
+    adapt_spike_width = 220
+    x = inject_spike_anomaly(
+        x,
+        start=adapt_spike_start,
+        width=adapt_spike_width,
+        amplitude=4.0,
+    )
+    x = apply_domain_shift(x, rng, target_shift_cfg)
+
+    path = raw_dir / "target_adapt_anomaly_spike_0.npy"
     save_signal(path, x)
-    
-    # для normal record
     rows.append(
         {
             "path": str(path).replace("\\", "/"),
-            "label": 0,  # record-level label
+            "label": 1,
             "domain": "target",
-            "record_id": f"target_adapt_unlabeled_{i}",
+            "record_id": "tgt_adapt_anom_spike_0",
             "split": "adapt",
-            "anomaly_intervals": to_intervals_json([]),
+            "anomaly_intervals": to_intervals_json(
+                [(adapt_spike_start, adapt_spike_start + adapt_spike_width)]
+            ),
         }
     )
 
-    records = pd.DataFrame(rows)
-    records_path = raw_dir / "records.csv"
-    records.to_csv(records_path, index=False)
+    x = make_base_signal(
+        length=length,
+        rng=rng,
+        mean=0.25,
+        std=1.2,
+        trend_strength=0.12,
+        sinus_freq=5.0,
+        sinus_amp=0.25,
+    )
+    adapt_burst_start = 7600
+    adapt_burst_width = 360
+    x = inject_burst_anomaly(
+        x,
+        start=adapt_burst_start,
+        width=adapt_burst_width,
+        amplitude=2.8,
+        cycles=20.0,
+    )
+    x = apply_domain_shift(x, rng, target_shift_cfg)
 
-    print(f"Saved raw records to: {records_path}")
-    print(records.groupby(["domain", "split", "label"]).size().reset_index(name="count"))
-    print("\nFull records table:")
-    print(records)
-
+    path = raw_dir / "target_adapt_anomaly_burst_0.npy"
+    save_signal(path, x)
+    rows.append(
+        {
+            "path": str(path).replace("\\", "/"),
+            "label": 1,
+            "domain": "target",
+            "record_id": "tgt_adapt_anom_burst_0",
+            "split": "adapt",
+            "anomaly_intervals": to_intervals_json(
+                [(adapt_burst_start, adapt_burst_start + adapt_burst_width)]
+            ),
+        }
+    )
 
 if __name__ == "__main__":
     main()
