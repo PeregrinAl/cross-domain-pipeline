@@ -178,18 +178,51 @@ def estimate_anomaly_rate_from_source(scores_df: pd.DataFrame, fallback: float =
     return rate
 
 
-def estimate_target_threshold_from_quantile(
+def estimate_target_threshold_from_upper_tail_gap(
     scores_df: pd.DataFrame,
-    anomaly_rate: float,
     fallback: float,
-) -> float:
+    tail_fraction: float = 0.4,
+    min_tail_size: int = 6,
+) -> tuple[float, dict]:
     if scores_df.empty or "score" not in scores_df.columns:
-        return float(fallback)
+        return float(fallback), {
+            "mode": "fallback_empty",
+            "raw_candidate": None,
+            "tail_size": 0,
+        }
 
-    anomaly_rate = min(max(float(anomaly_rate), 1e-6), 1.0 - 1e-6)
-    q = 1.0 - anomaly_rate
-    return float(np.quantile(scores_df["score"].values.astype(float), q))
+    scores = np.sort(scores_df["score"].values.astype(float))
+    n = scores.size
+    if n < 4:
+        return float(fallback), {
+            "mode": "fallback_too_small",
+            "raw_candidate": None,
+            "tail_size": int(n),
+        }
 
+    tail_size = max(min_tail_size, int(np.ceil(n * tail_fraction)))
+    tail_size = min(tail_size, n)
+    tail_scores = scores[-tail_size:]
+
+    if tail_scores.size < 4:
+        return float(fallback), {
+            "mode": "fallback_tail_too_small",
+            "raw_candidate": None,
+            "tail_size": int(tail_scores.size),
+        }
+
+    gaps = np.diff(tail_scores)
+    gap_idx = int(np.argmax(gaps))
+    raw_candidate = 0.5 * (tail_scores[gap_idx] + tail_scores[gap_idx + 1])
+
+    return float(raw_candidate), {
+        "mode": "upper_tail_gap",
+        "raw_candidate": float(raw_candidate),
+        "tail_size": int(tail_scores.size),
+        "tail_min": float(tail_scores.min()),
+        "tail_max": float(tail_scores.max()),
+        "max_gap": float(gaps[gap_idx]),
+    }
 
 def metrics_from_scores(scores_df: pd.DataFrame, threshold: float) -> dict:
     return compute_binary_metrics(
@@ -436,9 +469,8 @@ def main():
         fallback=0.1,
     )
 
-    target_threshold_before = estimate_target_threshold_from_quantile(
+    target_threshold_before, target_threshold_before_info = estimate_target_threshold_from_upper_tail_gap(
         scores_df=before_adapt_scores,
-        anomaly_rate=source_anomaly_rate,
         fallback=threshold,
     )
 
@@ -566,9 +598,8 @@ def main():
         device=device,
     )
 
-    target_threshold_after = estimate_target_threshold_from_quantile(
+    target_threshold_after, target_threshold_after_info = estimate_target_threshold_from_upper_tail_gap(
         scores_df=after_adapt_scores,
-        anomaly_rate=source_anomaly_rate,
         fallback=threshold,
     )
 
@@ -604,6 +635,8 @@ def main():
             "target_test_target_calibrated_pr_auc": after_target_metrics_calibrated["pr_auc"] - before_target_metrics_calibrated["pr_auc"],
             "target_test_target_calibrated_f1": after_target_metrics_calibrated["f1"] - before_target_metrics_calibrated["f1"],
         },
+        "target_threshold_before_info": target_threshold_before_info,
+        "target_threshold_after_info": target_threshold_after_info,
     }
 
     pd.DataFrame(history_rows).to_csv(out_dir / "adapt_history.csv", index=False)

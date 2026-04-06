@@ -2,8 +2,8 @@
   "variant": "fused",
   "threshold_used_source_val": 0.38506463170051575,
   "source_anomaly_rate": 0.1125,
-  "target_threshold_before": 0.37654054425656797,
-  "target_threshold_after": 0.37307744696736334,
+  "target_threshold_before": 0.3767984062433243,
+  "target_threshold_after": 0.3722084015607834,
   "before": {
     "source_val": {
       "roc_auc": 1.0,
@@ -72,5 +72,21 @@
     "target_test_target_calibrated_roc_auc": 0.0746527777777779,
     "target_test_target_calibrated_pr_auc": 0.23846081614463965,
     "target_test_target_calibrated_f1": 0.0
+  },
+  "target_threshold_before_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.3767984062433243,
+    "tail_size": 8,
+    "tail_min": 0.3759409189224243,
+    "tail_max": 0.3770134449005127,
+    "max_gap": 0.00043007731437683105
+  },
+  "target_threshold_after_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.3722084015607834,
+    "tail_size": 8,
+    "tail_min": 0.37179669737815857,
+    "tail_max": 0.37334150075912476,
+    "max_gap": 0.0007413327693939209
   }
 }
