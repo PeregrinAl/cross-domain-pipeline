@@ -169,6 +169,34 @@ def load_source_only_threshold(config, variant: str = "fused"):
 
     return fallback
 
+def estimate_anomaly_rate_from_source(scores_df: pd.DataFrame, fallback: float = 0.1) -> float:
+    if scores_df.empty or "label" not in scores_df.columns:
+        return float(fallback)
+
+    rate = float(scores_df["label"].mean())
+    rate = min(max(rate, 1e-6), 1.0 - 1e-6)
+    return rate
+
+
+def estimate_target_threshold_from_quantile(
+    scores_df: pd.DataFrame,
+    anomaly_rate: float,
+    fallback: float,
+) -> float:
+    if scores_df.empty or "score" not in scores_df.columns:
+        return float(fallback)
+
+    anomaly_rate = min(max(float(anomaly_rate), 1e-6), 1.0 - 1e-6)
+    q = 1.0 - anomaly_rate
+    return float(np.quantile(scores_df["score"].values.astype(float), q))
+
+
+def metrics_from_scores(scores_df: pd.DataFrame, threshold: float) -> dict:
+    return compute_binary_metrics(
+        y_true=scores_df["label"].values,
+        y_score=scores_df["score"].values,
+        threshold=float(threshold),
+    )
 
 def freeze_for_sfda(model):
     # Сначала замораживаем все параметры модели
@@ -381,11 +409,42 @@ def main():
         device=device,
         threshold=threshold,
     )
+
     before_target_metrics, before_target_scores = evaluate_split(
         model=model,
         loader=target_test_loader,
         device=device,
         threshold=threshold,
+    )
+
+    target_adapt_loader_eval = DataLoader(
+        target_adapt_dataset,
+        batch_size=config["sfda"]["batch_size"],
+        shuffle=False,
+        num_workers=config["training"]["num_workers"],
+        pin_memory=config["training"]["pin_memory"],
+    )
+
+    before_adapt_scores = collect_scores(
+        model=model,
+        loader=target_adapt_loader_eval,
+        device=device,
+    )
+
+    source_anomaly_rate = estimate_anomaly_rate_from_source(
+        before_source_scores,
+        fallback=0.1,
+    )
+
+    target_threshold_before = estimate_target_threshold_from_quantile(
+        scores_df=before_adapt_scores,
+        anomaly_rate=source_anomaly_rate,
+        fallback=threshold,
+    )
+
+    before_target_metrics_calibrated = metrics_from_scores(
+        scores_df=before_target_scores,
+        threshold=target_threshold_before,
     )
 
     branch_prototypes = compute_branch_prototypes(
@@ -493,6 +552,7 @@ def main():
         device=device,
         threshold=threshold,
     )
+
     after_target_metrics, after_target_scores = evaluate_split(
         model=model,
         loader=target_test_loader,
@@ -500,24 +560,49 @@ def main():
         threshold=threshold,
     )
 
+    after_adapt_scores = collect_scores(
+        model=model,
+        loader=target_adapt_loader_eval,
+        device=device,
+    )
+
+    target_threshold_after = estimate_target_threshold_from_quantile(
+        scores_df=after_adapt_scores,
+        anomaly_rate=source_anomaly_rate,
+        fallback=threshold,
+    )
+
+    after_target_metrics_calibrated = metrics_from_scores(
+        scores_df=after_target_scores,
+        threshold=target_threshold_after,
+    )
+
     summary = {
         "variant": "fused",
-        "threshold_used": threshold,
+        "threshold_used_source_val": float(threshold),
+        "source_anomaly_rate": float(source_anomaly_rate),
+        "target_threshold_before": float(target_threshold_before),
+        "target_threshold_after": float(target_threshold_after),
         "before": {
             "source_val": before_source_metrics,
-            "target_test": before_target_metrics,
+            "target_test_source_threshold": before_target_metrics,
+            "target_test_target_calibrated": before_target_metrics_calibrated,
         },
         "after": {
             "source_val": after_source_metrics,
-            "target_test": after_target_metrics,
+            "target_test_source_threshold": after_target_metrics,
+            "target_test_target_calibrated": after_target_metrics_calibrated,
         },
         "delta": {
             "source_val_roc_auc": after_source_metrics["roc_auc"] - before_source_metrics["roc_auc"],
             "source_val_pr_auc": after_source_metrics["pr_auc"] - before_source_metrics["pr_auc"],
             "source_val_f1": after_source_metrics["f1"] - before_source_metrics["f1"],
-            "target_test_roc_auc": after_target_metrics["roc_auc"] - before_target_metrics["roc_auc"],
-            "target_test_pr_auc": after_target_metrics["pr_auc"] - before_target_metrics["pr_auc"],
-            "target_test_f1": after_target_metrics["f1"] - before_target_metrics["f1"],
+            "target_test_source_threshold_roc_auc": after_target_metrics["roc_auc"] - before_target_metrics["roc_auc"],
+            "target_test_source_threshold_pr_auc": after_target_metrics["pr_auc"] - before_target_metrics["pr_auc"],
+            "target_test_source_threshold_f1": after_target_metrics["f1"] - before_target_metrics["f1"],
+            "target_test_target_calibrated_roc_auc": after_target_metrics_calibrated["roc_auc"] - before_target_metrics_calibrated["roc_auc"],
+            "target_test_target_calibrated_pr_auc": after_target_metrics_calibrated["pr_auc"] - before_target_metrics_calibrated["pr_auc"],
+            "target_test_target_calibrated_f1": after_target_metrics_calibrated["f1"] - before_target_metrics_calibrated["f1"],
         },
     }
 
