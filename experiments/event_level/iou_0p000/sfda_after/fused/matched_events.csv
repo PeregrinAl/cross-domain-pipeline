@@ -1,0 +1,2 @@
+record_id,domain,split,gt_idx,pred_idx,gt_start,gt_end,pred_start,pred_end,overlap_samples,iou,gt_coverage,pred_coverage,delay_samples
+tgt_test_anom_spike_0,target,test,0,0,3500,3720,2048,5632,220,0.06138392857142857,1.0,0.06138392857142857,0

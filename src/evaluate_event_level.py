@@ -325,7 +325,9 @@ def main():
         relevant_records=relevant_records,
     )
 
-    out_dir = Path(args.output_dir) / args.stage / args.variant
+    match_tag = f"iou_{args.min_iou:.3f}".replace(".", "p")
+
+    out_dir = Path(args.output_dir) / match_tag / args.stage / args.variant
     out_dir.mkdir(parents=True, exist_ok=True)
 
     matched_rows = []
@@ -477,6 +479,7 @@ def main():
         "records_csv": str(records_csv),
         "threshold_used": float(threshold),
         "min_iou": float(args.min_iou),
+        "match_tag": match_tag,
         "n_records": int(n_records),
         "n_gt_events": int(total_gt_events),
         "n_pred_events": int(total_pred_events),

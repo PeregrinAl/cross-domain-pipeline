@@ -1,0 +1,5 @@
+record_id,domain,split,pred_idx,pred_start,pred_end,pred_len
+tgt_test_anom_burst_0,target,test,0,0,11776,11776
+tgt_test_anom_spike_0,target,test,0,0,11776,11776
+tgt_test_norm_0,target,test,0,0,11776,11776
+tgt_test_norm_1,target,test,0,0,11776,11776

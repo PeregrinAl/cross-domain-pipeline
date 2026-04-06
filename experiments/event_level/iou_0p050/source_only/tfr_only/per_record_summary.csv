@@ -1,0 +1,5 @@
+record_id,domain,split,n_windows,n_gt_events,n_pred_events,n_matched_events,n_missed_events,n_false_alarm_events,record_event_recall,record_event_precision,record_mean_delay_samples
+tgt_test_anom_burst_0,target,test,20,1,1,0,1,1,0.0,0.0,
+tgt_test_anom_spike_0,target,test,20,1,1,0,1,1,0.0,0.0,
+tgt_test_norm_0,target,test,20,0,1,0,0,1,,0.0,
+tgt_test_norm_1,target,test,20,0,1,0,0,1,,0.0,
