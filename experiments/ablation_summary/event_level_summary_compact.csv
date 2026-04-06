@@ -1,0 +1,6 @@
+experiment,stage,iou_0p000__event_precision,iou_0p050__event_precision,iou_0p000__event_recall,iou_0p050__event_recall,iou_0p000__event_f1,iou_0p050__event_f1,iou_0p000__false_alarms_per_record,iou_0p050__false_alarms_per_record,iou_0p000__false_alarms_per_normal_record,iou_0p050__false_alarms_per_normal_record,iou_0p000__mean_detection_delay_samples,iou_0p050__mean_detection_delay_samples,iou_0p000__mean_matched_iou,iou_0p050__mean_matched_iou
+fused,sfda_after,1.0,1.0,0.5,0.5,0.6666666666666666,0.6666666666666666,0.0,0.0,0.0,0.0,0.0,0.0,0.06138392857142857,0.06138392857142857
+fused,sfda_before,1.0,1.0,0.5,0.5,0.6666666666666666,0.6666666666666666,0.0,0.0,0.0,0.0,0.0,0.0,0.07161458333333333,0.07161458333333333
+fused,source_only,0.5,0.0,1.0,0.0,0.6666666666666666,0.0,0.5,1.0,1.0,1.0,0.0,,0.024626358695652176,
+raw_only,source_only,0.5,0.0,1.0,0.0,0.6666666666666666,0.0,0.5,1.0,1.0,1.0,0.0,,0.024626358695652176,
+tfr_only,source_only,0.5,0.0,1.0,0.0,0.6666666666666666,0.0,0.5,1.0,1.0,1.0,0.0,,0.024626358695652176,
