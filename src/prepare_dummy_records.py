@@ -570,5 +570,13 @@ def main():
         }
     )
 
+    records_path = raw_dir / "records.csv"
+    records_df = pd.DataFrame(rows)
+    records_df.to_csv(records_path, index=False)
+
+    print(f"Saved records CSV: {records_path}")
+    print(f"Total records: {len(records_df)}")
+    print(records_df.groupby(["domain", "split"]).size())
+
 if __name__ == "__main__":
     main()

@@ -34,6 +34,21 @@ def main():
         min_anomaly_fraction=min_anomaly_fraction,
     )
 
+    adapt_manifest = manifest[
+        (manifest["domain"] == "target") &
+        (manifest["split"] == "adapt")
+    ].copy()
+
+    print("Prepared target/adapt windows:", len(adapt_manifest))
+    print("Prepared target/adapt records:")
+    print(adapt_manifest["record_id"].value_counts().sort_index())
+
+    if len(adapt_manifest) < 60:
+        raise ValueError(
+            f"Prepared target/adapt manifest is unexpectedly small: {len(adapt_manifest)} windows. "
+            "Expected substantially more for the current synthetic protocol."
+        )
+    
     print("Processed manifest created")
     print(f"Total windows: {len(manifest)}")
     print(manifest.head())
