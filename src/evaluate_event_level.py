@@ -13,24 +13,35 @@ from src.data.windowing import parse_intervals
 
 def parse_args():
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--config", type=str, default="configs/base.yaml")
+
     parser.add_argument(
         "--stage",
         type=str,
         required=True,
         choices=["source_only", "sfda_before", "sfda_after"],
     )
+
     parser.add_argument(
         "--variant",
         type=str,
         required=True,
         choices=["raw_only", "tfr_only", "fused"],
     )
+
     parser.add_argument("--scores-csv", type=str, default=None)
     parser.add_argument("--summary-json", type=str, default=None)
     parser.add_argument("--threshold", type=float, default=None)
     parser.add_argument("--output-dir", type=str, default="experiments/event_level")
     parser.add_argument("--min-iou", type=float, default=0.0)
+
+    # Temporal post-processing controls
+    parser.add_argument("--score-smoothing-windows", type=int, default=1)
+    parser.add_argument("--hysteresis-low-ratio", type=float, default=1.0)
+    parser.add_argument("--max-gap-samples", type=int, default=0)
+    parser.add_argument("--min-event-length-samples", type=int, default=1)
+
     return parser.parse_args()
 
 
@@ -119,18 +130,156 @@ def interval_iou(a: tuple[int, int], b: tuple[int, int]) -> float:
     union = len_a + len_b - overlap
     return float(overlap / union) if union > 0 else 0.0
 
+def smooth_scores(scores: np.ndarray, smoothing_windows: int) -> np.ndarray:
+    if smoothing_windows < 1:
+        raise ValueError("--score-smoothing-windows must be >= 1")
 
-def build_predicted_events(record_windows: pd.DataFrame, threshold: float) -> list[tuple[int, int]]:
-    positive = record_windows.loc[record_windows["score"] >= threshold].copy()
+    if smoothing_windows == 1:
+        return scores.astype(float, copy=True)
+
+    if smoothing_windows % 2 == 0:
+        raise ValueError("--score-smoothing-windows must be odd for centered median smoothing")
+
+    return (
+        pd.Series(scores)
+        .rolling(window=smoothing_windows, center=True, min_periods=1)
+        .median()
+        .to_numpy(dtype=float)
+    )
+
+
+def hysteresis_mask(
+    scores: np.ndarray,
+    high_threshold: float,
+    low_threshold: float,
+) -> np.ndarray:
+    if low_threshold > high_threshold:
+        raise ValueError("low_threshold must be <= high_threshold")
+
+    high_mask = scores >= high_threshold
+    low_mask = scores >= low_threshold
+
+    active = False
+    out = np.zeros(len(scores), dtype=bool)
+
+    for i in range(len(scores)):
+        if not active and high_mask[i]:
+            active = True
+        elif active and not low_mask[i]:
+            active = False
+
+        out[i] = active
+
+    return out
+
+
+def mask_to_intervals(
+    record_windows: pd.DataFrame,
+    active_mask: np.ndarray,
+) -> list[tuple[int, int]]:
+    if len(active_mask) != len(record_windows):
+        raise ValueError("active_mask length must match number of record windows")
+
+    positive = record_windows.loc[active_mask].copy()
+
     if positive.empty:
         return []
 
-    positive = positive.sort_values(["start", "end"]).reset_index(drop=True)
     raw_intervals = [
         (int(row.start), int(row.end))
         for row in positive.itertuples(index=False)
     ]
     return merge_intervals(raw_intervals)
+
+
+def close_short_gaps(
+    intervals: list[tuple[int, int]],
+    max_gap_samples: int,
+) -> list[tuple[int, int]]:
+    if max_gap_samples < 0:
+        raise ValueError("--max-gap-samples must be >= 0")
+
+    if max_gap_samples == 0 or not intervals:
+        return intervals
+
+    intervals = sorted((int(s), int(e)) for s, e in intervals if int(e) > int(s))
+    if not intervals:
+        return []
+
+    merged = [intervals[0]]
+
+    for start, end in intervals[1:]:
+        prev_start, prev_end = merged[-1]
+        gap = start - prev_end
+
+        if gap <= max_gap_samples:
+            merged[-1] = (prev_start, max(prev_end, end))
+        else:
+            merged.append((start, end))
+
+    return merged
+
+
+def filter_short_intervals(
+    intervals: list[tuple[int, int]],
+    min_event_length_samples: int,
+) -> list[tuple[int, int]]:
+    if min_event_length_samples < 1:
+        raise ValueError("--min-event-length-samples must be >= 1")
+
+    if min_event_length_samples == 1:
+        return intervals
+
+    return [
+        (int(start), int(end))
+        for start, end in intervals
+        if (int(end) - int(start)) >= min_event_length_samples
+    ]
+
+
+def format_postproc_tag(args) -> str:
+    hyst = f"{args.hysteresis_low_ratio:.3f}".replace(".", "p")
+    return (
+        f"smooth_{int(args.score_smoothing_windows)}"
+        f"__hyst_{hyst}"
+        f"__gap_{int(args.max_gap_samples)}"
+        f"__minlen_{int(args.min_event_length_samples)}"
+    )
+
+def build_predicted_events(
+    record_windows: pd.DataFrame,
+    threshold: float,
+    score_smoothing_windows: int = 1,
+    hysteresis_low_ratio: float = 1.0,
+    max_gap_samples: int = 0,
+    min_event_length_samples: int = 1,
+) -> list[tuple[int, int]]:
+    if not (0.0 < hysteresis_low_ratio <= 1.0):
+        raise ValueError("--hysteresis-low-ratio must be in (0, 1]")
+
+    record_windows = record_windows.sort_values(["start", "end"]).reset_index(drop=True)
+
+    scores = record_windows["score"].to_numpy(dtype=float)
+    processed_scores = smooth_scores(scores, smoothing_windows=score_smoothing_windows)
+
+    if hysteresis_low_ratio < 1.0:
+        low_threshold = threshold * hysteresis_low_ratio
+        active_mask = hysteresis_mask(
+            processed_scores,
+            high_threshold=threshold,
+            low_threshold=low_threshold,
+        )
+    else:
+        active_mask = processed_scores >= threshold
+
+    pred_events = mask_to_intervals(record_windows, active_mask)
+    pred_events = close_short_gaps(pred_events, max_gap_samples=max_gap_samples)
+    pred_events = filter_short_intervals(
+        pred_events,
+        min_event_length_samples=min_event_length_samples,
+    )
+
+    return pred_events
 
 
 def match_events(
@@ -326,8 +475,9 @@ def main():
     )
 
     match_tag = f"iou_{args.min_iou:.3f}".replace(".", "p")
+    postproc_tag = format_postproc_tag(args)
 
-    out_dir = Path(args.output_dir) / match_tag / args.stage / args.variant
+    out_dir = Path(args.output_dir) / match_tag / postproc_tag / args.stage / args.variant
     out_dir.mkdir(parents=True, exist_ok=True)
 
     matched_rows = []
@@ -354,7 +504,14 @@ def main():
             raise KeyError(f"Record not found in records.csv for key={key}")
 
         gt_events = records_map[key]["anomaly_intervals"]
-        pred_events = build_predicted_events(record_windows, threshold=threshold)
+        pred_events = build_predicted_events(
+            record_windows,
+            threshold=threshold,
+            score_smoothing_windows=args.score_smoothing_windows,
+            hysteresis_low_ratio=args.hysteresis_low_ratio,
+            max_gap_samples=args.max_gap_samples,
+            min_event_length_samples=args.min_event_length_samples,
+        )
 
         for gt_idx, (gt_start, gt_end) in enumerate(gt_events):
             gt_rows.append(
@@ -480,6 +637,11 @@ def main():
         "threshold_used": float(threshold),
         "min_iou": float(args.min_iou),
         "match_tag": match_tag,
+        "postproc_tag": postproc_tag,
+        "score_smoothing_windows": int(args.score_smoothing_windows),
+        "hysteresis_low_ratio": float(args.hysteresis_low_ratio),
+        "max_gap_samples": int(args.max_gap_samples),
+        "min_event_length_samples": int(args.min_event_length_samples),
         "n_records": int(n_records),
         "n_gt_events": int(total_gt_events),
         "n_pred_events": int(total_pred_events),
