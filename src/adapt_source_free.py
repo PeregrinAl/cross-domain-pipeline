@@ -151,15 +151,23 @@ def evaluate_split(model, loader, device, threshold):
     return metrics, scores_df
 
 
-def load_day5_threshold():
-    summary_path = Path("experiments/day5_evaluation/fused/summary.json")
+def load_source_only_threshold(config, variant: str = "fused"):
+    fallback = float(config["training"]["threshold"])
+    summary_path = Path(config["outputs"]["source_only_dir"]) / variant / "summary.json"
+
     if not summary_path.exists():
-        return 0.5
+        return fallback
 
     with open(summary_path, "r", encoding="utf-8") as f:
         summary = json.load(f)
 
-    return float(summary["best_threshold_source_val_f1"])
+    if "threshold_used" in summary:
+        return float(summary["threshold_used"])
+
+    if "best_threshold_source_val_f1" in summary:
+        return float(summary["best_threshold_source_val_f1"])
+
+    return fallback
 
 
 def freeze_for_sfda(model):
@@ -335,7 +343,7 @@ def main():
     out_dir = Path(config["outputs"]["sfda_dir"]) / "fused"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    threshold = load_day5_threshold()
+    threshold = load_source_only_threshold(config, variant="fused")
     print("Using evaluation/selection threshold:", threshold)
     print("Using device:", device)
 

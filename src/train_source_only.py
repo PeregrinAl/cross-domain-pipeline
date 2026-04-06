@@ -165,6 +165,58 @@ def load_checkpoint(path: Path, model, optimizer=None, map_location="cpu"):
 
     return checkpoint
 
+def select_best_f1_threshold(scores_df: pd.DataFrame, fallback: float = 0.5) -> float:
+    if scores_df.empty:
+        return float(fallback)
+
+    y_true = scores_df["label"].values.astype(int)
+    y_score = scores_df["score"].values.astype(float)
+
+    unique_scores = np.unique(y_score)
+    if unique_scores.size == 0:
+        return float(fallback)
+
+    candidate_thresholds = np.concatenate(
+        [
+            [max(0.0, float(unique_scores.min()) - 1e-6)],
+            unique_scores,
+            [min(1.0, float(unique_scores.max()) + 1e-6)],
+        ]
+    )
+
+    best_threshold = float(fallback)
+    best_f1 = -1.0
+    best_gap = np.inf
+
+    for thr in candidate_thresholds:
+        metrics = compute_binary_metrics(
+            y_true=y_true,
+            y_score=y_score,
+            threshold=float(thr),
+        )
+        f1 = float(metrics["f1"])
+        gap = abs(float(thr) - float(fallback))
+
+        if (f1 > best_f1) or (np.isclose(f1, best_f1) and gap < best_gap):
+            best_f1 = f1
+            best_threshold = float(thr)
+            best_gap = gap
+
+    return best_threshold
+
+
+def recompute_metrics_with_threshold(
+    scores_df: pd.DataFrame,
+    threshold: float,
+    loss_value: float,
+) -> dict:
+    metrics = compute_binary_metrics(
+        y_true=scores_df["label"].values,
+        y_score=scores_df["score"].values,
+        threshold=float(threshold),
+    )
+    metrics["loss"] = float(loss_value)
+    return metrics
 
 def main():
     args = parse_args()
@@ -270,7 +322,7 @@ def main():
     else:
         print("Best checkpoint was not saved. Using last model state.")
 
-    source_val_metrics, source_val_scores = evaluate_model(
+    source_val_metrics_default, source_val_scores = evaluate_model(
         model=model,
         loader=source_val_loader,
         criterion=criterion,
@@ -278,7 +330,19 @@ def main():
         threshold=threshold,
     )
 
-    target_test_metrics, target_test_scores = evaluate_model(
+    best_threshold = select_best_f1_threshold(
+        source_val_scores,
+        fallback=threshold,
+    )
+    print(f"Selected threshold from source_val F1: {best_threshold:.6f}")
+
+    source_val_metrics = recompute_metrics_with_threshold(
+        scores_df=source_val_scores,
+        threshold=best_threshold,
+        loss_value=source_val_metrics_default["loss"],
+    )
+
+    target_test_metrics_default, target_test_scores = evaluate_model(
         model=model,
         loader=target_test_loader,
         criterion=criterion,
@@ -286,8 +350,17 @@ def main():
         threshold=threshold,
     )
 
+    target_test_metrics = recompute_metrics_with_threshold(
+        scores_df=target_test_scores,
+        threshold=best_threshold,
+        loss_value=target_test_metrics_default["loss"],
+    )
+
     summary = {
         "variant": args.variant,
+        "threshold_config": float(threshold),
+        "threshold_used": float(best_threshold),
+        "best_threshold_source_val_f1": float(best_threshold),
         "source_val": source_val_metrics,
         "target_test": target_test_metrics,
     }
