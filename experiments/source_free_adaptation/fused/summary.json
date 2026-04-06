@@ -1,52 +1,52 @@
 {
   "variant": "fused",
-  "threshold_used": 0.38272380888462065,
+  "threshold_used": 0.5,
   "before": {
     "source_val": {
       "roc_auc": 1.0,
       "pr_auc": 1.0,
-      "f1": 0.6153846153846154,
+      "f1": 0.0,
       "tn": 71,
       "fp": 0,
-      "fn": 5,
-      "tp": 4
+      "fn": 9,
+      "tp": 0
     },
     "target_test": {
-      "roc_auc": 1.0,
-      "pr_auc": 1.0,
-      "f1": 0.5,
-      "tn": 71,
+      "roc_auc": 0.9930555555555556,
+      "pr_auc": 0.931795634920635,
+      "f1": 0.0,
+      "tn": 72,
       "fp": 0,
-      "fn": 6,
-      "tp": 3
+      "fn": 8,
+      "tp": 0
     }
   },
   "after": {
     "source_val": {
       "roc_auc": 1.0,
       "pr_auc": 1.0,
-      "f1": 0.9411764705882353,
+      "f1": 0.0,
       "tn": 71,
       "fp": 0,
-      "fn": 1,
-      "tp": 8
+      "fn": 9,
+      "tp": 0
     },
     "target_test": {
-      "roc_auc": 1.0,
-      "pr_auc": 1.0,
-      "f1": 1.0,
-      "tn": 71,
+      "roc_auc": 0.9930555555555556,
+      "pr_auc": 0.931795634920635,
+      "f1": 0.0,
+      "tn": 72,
       "fp": 0,
-      "fn": 0,
-      "tp": 9
+      "fn": 8,
+      "tp": 0
     }
   },
   "delta": {
     "source_val_roc_auc": 0.0,
     "source_val_pr_auc": 0.0,
-    "source_val_f1": 0.32579185520361986,
+    "source_val_f1": 0.0,
     "target_test_roc_auc": 0.0,
     "target_test_pr_auc": 0.0,
-    "target_test_f1": 0.5
+    "target_test_f1": 0.0
   }
 }
