@@ -1,0 +1,5 @@
+split,domain,num_windows,num_normal_windows,num_anomaly_windows
+train,source,120,110,10
+val,source,80,71,9
+test,target,80,71,9
+adapt,target,20,20,0

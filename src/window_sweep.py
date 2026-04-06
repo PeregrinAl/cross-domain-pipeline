@@ -1,5 +1,3 @@
-# src/window_sweep.py
-
 import copy
 import json
 import subprocess
@@ -14,11 +12,43 @@ CONFIG_PATH = Path("configs/base.yaml")
 OUT_DIR = Path("experiments/window_sweep")
 VARIANTS = ["raw_only", "tfr_only", "fused"]
 
-WINDOW_GRID = [
-    {"window_size": 1024, "stride": 256},
-    {"window_size": 2048, "stride": 512},
-    {"window_size": 2048, "stride": 256},
-    {"window_size": 4096, "stride": 1024},
+PROTOCOL_GRID = [
+    {
+        "window_size": 1024,
+        "stride": 256,
+        "window_label_mode": "any_overlap",
+        "min_anomaly_fraction": 0.0,
+    },
+    {
+        "window_size": 2048,
+        "stride": 512,
+        "window_label_mode": "any_overlap",
+        "min_anomaly_fraction": 0.0,
+    },
+    {
+        "window_size": 2048,
+        "stride": 256,
+        "window_label_mode": "any_overlap",
+        "min_anomaly_fraction": 0.0,
+    },
+    {
+        "window_size": 2048,
+        "stride": 512,
+        "window_label_mode": "min_fraction",
+        "min_anomaly_fraction": 0.02,
+    },
+    {
+        "window_size": 2048,
+        "stride": 512,
+        "window_label_mode": "min_fraction",
+        "min_anomaly_fraction": 0.05,
+    },
+    {
+        "window_size": 2048,
+        "stride": 512,
+        "window_label_mode": "min_fraction",
+        "min_anomaly_fraction": 0.10,
+    },
 ]
 
 
@@ -37,8 +67,14 @@ def run_cmd(cmd):
     subprocess.run(cmd, check=True)
 
 
-def make_run_name(window_size: int, stride: int) -> str:
-    return f"ws_{window_size}_st_{stride}"
+def make_run_name(
+    window_size: int,
+    stride: int,
+    window_label_mode: str,
+    min_anomaly_fraction: float,
+) -> str:
+    frac_tag = str(min_anomaly_fraction).replace(".", "p")
+    return f"ws_{window_size}_st_{stride}_{window_label_mode}_mf_{frac_tag}"
 
 
 def collect_window_balance(manifest_path: Path):
@@ -77,6 +113,56 @@ def flatten_balance(balance_df: pd.DataFrame):
     return flat
 
 
+def collect_overlap_diagnostics(manifest_path: Path):
+    df = pd.read_csv(manifest_path)
+
+    diag = {}
+
+    anomaly_df = df[df["record_label"] == 1].copy()
+    anomaly_record_ids = anomaly_df["record_id"].unique().tolist()
+
+    per_record_positive = (
+        df.groupby("record_id")["label"]
+        .sum()
+        .to_dict()
+    )
+
+    positive_counts = []
+    zero_positive_records = 0
+
+    for record_id in anomaly_record_ids:
+        count = int(per_record_positive.get(record_id, 0))
+        positive_counts.append(count)
+        if count == 0:
+            zero_positive_records += 1
+
+    pos_df = df[df["label"] == 1].copy()
+    if len(pos_df) > 0 and "overlap_fraction" in pos_df.columns:
+        diag["positive_overlap_fraction_mean"] = float(pos_df["overlap_fraction"].mean())
+        diag["positive_overlap_fraction_median"] = float(pos_df["overlap_fraction"].median())
+        diag["positive_overlap_fraction_min"] = float(pos_df["overlap_fraction"].min())
+        diag["positive_overlap_fraction_max"] = float(pos_df["overlap_fraction"].max())
+    else:
+        diag["positive_overlap_fraction_mean"] = None
+        diag["positive_overlap_fraction_median"] = None
+        diag["positive_overlap_fraction_min"] = None
+        diag["positive_overlap_fraction_max"] = None
+
+    diag["num_anomalous_records"] = int(len(anomaly_record_ids))
+    diag["num_anomalous_records_with_zero_positive_windows"] = int(zero_positive_records)
+    diag["mean_positive_windows_per_anomalous_record"] = (
+        float(sum(positive_counts) / len(positive_counts)) if positive_counts else None
+    )
+    diag["min_positive_windows_per_anomalous_record"] = (
+        int(min(positive_counts)) if positive_counts else None
+    )
+    diag["max_positive_windows_per_anomalous_record"] = (
+        int(max(positive_counts)) if positive_counts else None
+    )
+
+    return diag
+
+
 def read_variant_summary(source_only_dir: Path, variant: str):
     summary_path = source_only_dir / variant / "summary.json"
     if not summary_path.exists():
@@ -93,24 +179,33 @@ def main():
     all_rows = []
 
     try:
-        for combo in WINDOW_GRID:
+        for combo in PROTOCOL_GRID:
             window_size = combo["window_size"]
             stride = combo["stride"]
-            run_name = make_run_name(window_size, stride)
+            window_label_mode = combo["window_label_mode"]
+            min_anomaly_fraction = combo["min_anomaly_fraction"]
+
+            run_name = make_run_name(
+                window_size=window_size,
+                stride=stride,
+                window_label_mode=window_label_mode,
+                min_anomaly_fraction=min_anomaly_fraction,
+            )
 
             run_dir = OUT_DIR / run_name
             run_dir.mkdir(parents=True, exist_ok=True)
 
-            print("\n" + "=" * 80)
+            print("\n" + "=" * 100)
             print(f"RUN: {run_name}")
-            print("=" * 80)
+            print("=" * 100)
 
             run_config = copy.deepcopy(original_config)
-
             run_config["data"]["window_size"] = window_size
             run_config["data"]["stride"] = stride
+            run_config["data"]["window_label_mode"] = window_label_mode
+            run_config["data"]["min_anomaly_fraction"] = min_anomaly_fraction
 
-            run_source_only_dir = OUT_DIR / run_name / "source_only_supervised"
+            run_source_only_dir = run_dir / "source_only_training"
             run_config["outputs"]["source_only_dir"] = str(run_source_only_dir).replace("\\", "/")
 
             save_yaml(CONFIG_PATH, run_config)
@@ -119,7 +214,10 @@ def main():
 
             manifest_path = Path(run_config["data"]["manifest_path"])
             balance_df = collect_window_balance(manifest_path)
-            balance_df.to_csv(OUT_DIR / run_name / "window_balance.csv", index=False)
+            balance_df.to_csv(run_dir / "window_balance.csv", index=False)
+
+            overlap_diag = collect_overlap_diagnostics(manifest_path)
+            pd.DataFrame([overlap_diag]).to_csv(run_dir / "overlap_diagnostics.csv", index=False)
 
             balance_flat = flatten_balance(balance_df)
 
@@ -142,6 +240,8 @@ def main():
                     "run_name": run_name,
                     "window_size": window_size,
                     "stride": stride,
+                    "window_label_mode": window_label_mode,
+                    "min_anomaly_fraction": min_anomaly_fraction,
                     "variant": variant,
                     "source_val_roc_auc": summary["source_val"]["roc_auc"],
                     "target_test_roc_auc": summary["target_test"]["roc_auc"],
@@ -154,6 +254,8 @@ def main():
                 }
 
                 row.update(balance_flat)
+                row.update(overlap_diag)
+
                 all_rows.append(row)
 
             pd.DataFrame(all_rows).to_csv(OUT_DIR / "window_sweep_summary.csv", index=False)
