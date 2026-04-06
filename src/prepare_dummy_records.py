@@ -134,13 +134,13 @@ def apply_domain_shift(
     y = apply_amplitude_scale(y, scale)
     y = apply_extra_noise(y, rng, shift_cfg["extra_noise_std"])
     y = apply_extra_trend(y, shift_cfg["extra_trend_strength"])
-    y = apply_frequency_shift(
-        y,
-        rng,
-        shift_cfg["freq_multiplier_min"],
-        shift_cfg["freq_multiplier_max"],
-    )
-    y = apply_temporal_warp(y, rng, shift_cfg["temporal_warp_sigma"])
+    # y = apply_frequency_shift(
+    #     y,
+    #     rng,
+    #     shift_cfg["freq_multiplier_min"],
+    #     shift_cfg["freq_multiplier_max"],
+    # )
+    # y = apply_temporal_warp(y, rng, shift_cfg["temporal_warp_sigma"])
     return y.astype(np.float32)
 
 def main():
