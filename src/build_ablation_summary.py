@@ -59,18 +59,20 @@ def build_sfda_row(sfda_dir: Path, variant: str = "fused", stage_name: str = "sf
     data = load_json(summary_path)
 
     after = data["after"]
+    target = after["target_test_target_calibrated"]
+    source = after["source_val"]
 
     return {
         "experiment": variant,
         "stage": stage_name,
-        "source_val_roc_auc": after["source_val"]["roc_auc"],
-        "target_test_roc_auc": after["target_test"]["roc_auc"],
-        "source_val_pr_auc": after["source_val"]["pr_auc"],
-        "target_test_pr_auc": after["target_test"]["pr_auc"],
-        "source_val_f1": after["source_val"]["f1"],
-        "target_test_f1": after["target_test"]["f1"],
-        "delta_roc_auc": after["source_val"]["roc_auc"] - after["target_test"]["roc_auc"],
-        "delta_pr_auc": after["source_val"]["pr_auc"] - after["target_test"]["pr_auc"],
+        "source_val_roc_auc": source["roc_auc"],
+        "target_test_roc_auc": target["roc_auc"],
+        "source_val_pr_auc": source["pr_auc"],
+        "target_test_pr_auc": target["pr_auc"],
+        "source_val_f1": source["f1"],
+        "target_test_f1": target["f1"],
+        "delta_roc_auc": source["roc_auc"] - target["roc_auc"],
+        "delta_pr_auc": source["pr_auc"] - target["pr_auc"],
     }
 
 
@@ -125,12 +127,12 @@ def plot_fused_before_after(sfda_dir: Path):
 
     labels = ["before", "after"]
     target_roc = [
-        data["before"]["target_test"]["roc_auc"],
-        data["after"]["target_test"]["roc_auc"],
+        data["before"]["target_test_target_calibrated"]["roc_auc"],
+        data["after"]["target_test_target_calibrated"]["roc_auc"],
     ]
     target_pr = [
-        data["before"]["target_test"]["pr_auc"],
-        data["after"]["target_test"]["pr_auc"],
+        data["before"]["target_test_target_calibrated"]["pr_auc"],
+        data["after"]["target_test_target_calibrated"]["pr_auc"],
     ]
 
     plt.figure(figsize=(6, 4))
