@@ -433,6 +433,18 @@ def main():
         domain="target",
     )
 
+    target_adapt_df = target_adapt_dataset.df.copy()
+
+    print("Target adapt dataset size:", len(target_adapt_df))
+    print("Target adapt records:")
+    print(target_adapt_df["record_id"].value_counts().sort_index())
+
+    if len(target_adapt_df) < 60:
+        raise ValueError(
+            f"Target adapt split is unexpectedly small: {len(target_adapt_df)} windows. "
+            "Expected substantially more for the current synthetic protocol."
+        )
+
     model = build_fused_model(config).to(device)
     load_source_checkpoint(model, source_ckpt_path, device)
 
