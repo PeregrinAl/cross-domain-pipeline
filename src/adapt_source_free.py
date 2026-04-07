@@ -21,6 +21,16 @@ def resolve_device(config_device: str) -> torch.device:
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(config_device)
 
+def parse_args():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="configs/base.yaml")
+    return parser.parse_args()
+
+def load_config(config_path: str):
+    with open(config_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 def move_batch_to_device(batch, device):
     moved = {}
@@ -415,14 +425,22 @@ def main():
     args = parse_args()
     config = load_config(args.config)
 
+    set_seed(config["seed"])
+    device = resolve_device(config["training"].get("device", "auto"))
+
     run_root = build_run_root(config)
     save_run_snapshots(run_root, args.config, config)
+
+    sfda_variant = config["sfda"]["variant"]
+    if sfda_variant != "fused":
+        raise ValueError("This minimal SFDA script currently supports only variant='fused'")
 
     source_ckpt_path = run_root / "source_only_training" / "fused" / "best.pt"
     out_dir = run_root / "source_free_adaptation" / "fused"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     threshold = load_source_only_threshold(config, variant="fused")
+
     print("Using evaluation/selection threshold:", threshold)
     print("Using device:", device)
 

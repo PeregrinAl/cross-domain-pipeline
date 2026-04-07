@@ -42,9 +42,8 @@ evaluation:
   normal_label: 0
   distance: l2
 outputs:
-  experiment_root: experiments/paderborn
-  experiment_name: N15_M07_F10__to__N09_M07_F10__binary_vibration
-  run_name: run_001
+  source_only_dir: experiments/source_only_training
+  sfda_dir: experiments/source_free_adaptation
 sfda:
   variant: fused
   adapt_split: adapt

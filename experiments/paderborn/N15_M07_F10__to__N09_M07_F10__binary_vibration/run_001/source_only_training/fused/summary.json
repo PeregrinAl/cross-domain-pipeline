@@ -1,0 +1,28 @@
+{
+  "variant": "fused",
+  "experiment_name": "N15_M07_F10__to__N09_M07_F10__binary_vibration",
+  "run_name": "run_001",
+  "threshold_config": 0.5,
+  "threshold_used": 0.0033765274565666914,
+  "best_threshold_source_val_f1": 0.0033765274565666914,
+  "source_val": {
+    "roc_auc": 0.9775433283807473,
+    "pr_auc": 0.9764568066653402,
+    "f1": 0.9256689791873142,
+    "tn": 452,
+    "fp": 45,
+    "fn": 30,
+    "tp": 467,
+    "loss": 1.6289314670259625
+  },
+  "target_test": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "f1": 1.0,
+    "tn": 497,
+    "fp": 0,
+    "fn": 0,
+    "tp": 497,
+    "loss": 0.0003762762471871878
+  }
+}

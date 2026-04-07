@@ -1,0 +1,9 @@
+path,label,domain,record_id,split,setting,bearing_code,measurement_idx,modality
+data/raw/paderborn_npy/N15_M07_F10_K001_1.npy,0,source,N15_M07_F10_K001_1,train,N15_M07_F10,K001,1,vibration
+data/raw/paderborn_npy/N15_M07_F10_KA01_1.npy,1,source,N15_M07_F10_KA01_1,train,N15_M07_F10,KA01,1,vibration
+data/raw/paderborn_npy/N15_M07_F10_K002_1.npy,0,source,N15_M07_F10_K002_1,val,N15_M07_F10,K002,1,vibration
+data/raw/paderborn_npy/N15_M07_F10_KA05_1.npy,1,source,N15_M07_F10_KA05_1,val,N15_M07_F10,KA05,1,vibration
+data/raw/paderborn_npy/N09_M07_F10_K003_1.npy,0,target,N09_M07_F10_K003_1,adapt,N09_M07_F10,K003,1,vibration
+data/raw/paderborn_npy/N09_M07_F10_KA03_1.npy,1,target,N09_M07_F10_KA03_1,adapt,N09_M07_F10,KA03,1,vibration
+data/raw/paderborn_npy/N09_M07_F10_K004_1.npy,0,target,N09_M07_F10_K004_1,test,N09_M07_F10,K004,1,vibration
+data/raw/paderborn_npy/N09_M07_F10_KA04_1.npy,1,target,N09_M07_F10_KA04_1,test,N09_M07_F10,KA04,1,vibration
