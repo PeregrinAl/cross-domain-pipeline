@@ -20,7 +20,7 @@ representation choice, threshold calibration, and strict evaluation are central 
 
 Current results show that:
 - on synthetic controlled shift, fused source-only is the strongest baseline and SFDA improves target-side metrics;
-- on the current Paderborn real-data shift, source-only fused already reaches ceiling-level performance, so adaptation is not the main source of gain;
+- on the current Paderborn real-data pilot shift, source-only fused already performs very strongly, so adaptation is not the main source of gain in this pilot;
 - therefore the main contribution is not a new adaptation algorithm, but a generic evaluation methodology for nonstationary-signal anomaly recognition.
 
 ## Project Status
@@ -468,3 +468,7 @@ This repository does **not** currently claim:
 * The project is intentionally developed through small, saved experimental runs.
 * Synthetic experiments are used as a justification stage, not as the final destination.
 * The current real-data stage is a pilot designed to support the next round of condition-level vibration experiments.
+
+## Scope and Claims
+
+For a stricter boundary between supported claims, excluded claims, and open evidence gaps, see `docs/claims_scope.md`.
