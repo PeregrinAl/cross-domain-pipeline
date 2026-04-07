@@ -1,0 +1,28 @@
+{
+  "variant": "raw_only",
+  "experiment_name": "N15_M07_F10__to__N09_M07_F10__binary_vibration",
+  "run_name": "run_003_repr_sweep",
+  "threshold_config": 0.5,
+  "threshold_used": 0.25601476430892944,
+  "best_threshold_source_val_f1": 0.25601476430892944,
+  "source_val": {
+    "roc_auc": 0.9335635577978809,
+    "pr_auc": 0.9258811423500695,
+    "f1": 0.8638626772250937,
+    "tn": 7988,
+    "fp": 1995,
+    "fn": 876,
+    "tp": 9109,
+    "loss": 0.34541560109415187
+  },
+  "target_test": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "f1": 1.0,
+    "tn": 9959,
+    "fp": 0,
+    "fn": 0,
+    "tp": 9941,
+    "loss": 0.00010935697853660461
+  }
+}
