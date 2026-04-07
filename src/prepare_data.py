@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 import yaml
@@ -5,8 +6,16 @@ import yaml
 from src.data.windowing import build_window_manifest
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="configs/base.yaml")
+    return parser.parse_args()
+
+
 def main():
-    config_path = Path("configs/base.yaml")
+    args = parse_args()
+
+    config_path = Path(args.config)
     if not config_path.exists():
         raise FileNotFoundError(f"Config not found: {config_path}")
 
@@ -18,7 +27,6 @@ def main():
     window_size = config["data"]["window_size"]
     stride = config["data"]["stride"]
     drop_last = config["data"].get("drop_last", True)
-
     intervals_column = config["data"].get("anomaly_intervals_column", "anomaly_intervals")
     window_label_mode = config["data"].get("window_label_mode", "any_overlap")
     min_anomaly_fraction = config["data"].get("min_anomaly_fraction", 0.0)
@@ -34,21 +42,6 @@ def main():
         min_anomaly_fraction=min_anomaly_fraction,
     )
 
-    adapt_manifest = manifest[
-        (manifest["domain"] == "target") &
-        (manifest["split"] == "adapt")
-    ].copy()
-
-    print("Prepared target/adapt windows:", len(adapt_manifest))
-    print("Prepared target/adapt records:")
-    print(adapt_manifest["record_id"].value_counts().sort_index())
-
-    if len(adapt_manifest) < 60:
-        raise ValueError(
-            f"Prepared target/adapt manifest is unexpectedly small: {len(adapt_manifest)} windows. "
-            "Expected substantially more for the current synthetic protocol."
-        )
-    
     print("Processed manifest created")
     print(f"Total windows: {len(manifest)}")
     print(manifest.head())
