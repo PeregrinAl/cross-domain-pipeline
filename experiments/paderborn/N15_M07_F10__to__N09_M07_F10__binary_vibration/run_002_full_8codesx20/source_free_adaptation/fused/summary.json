@@ -1,0 +1,94 @@
+{
+  "variant": "fused",
+  "threshold_used_source_val": 0.8848375678062439,
+  "source_anomaly_rate": 0.5000500801282052,
+  "target_threshold_before": 0.9999035000801086,
+  "target_threshold_after": 0.9994143843650818,
+  "before": {
+    "source_val": {
+      "roc_auc": 0.9965046237090787,
+      "pr_auc": 0.996488333996605,
+      "f1": 0.9727064448650264,
+      "tn": 9655,
+      "fp": 328,
+      "fn": 220,
+      "tp": 9765
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 1.0,
+      "tn": 9959,
+      "fp": 0,
+      "fn": 0,
+      "tp": 9941
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 0.9998993963782696,
+      "tn": 9959,
+      "fp": 0,
+      "fn": 2,
+      "tp": 9939
+    }
+  },
+  "after": {
+    "source_val": {
+      "roc_auc": 0.9978202202632808,
+      "pr_auc": 0.997817834912156,
+      "f1": 0.3434259643301535,
+      "tn": 9983,
+      "fp": 0,
+      "fn": 7915,
+      "tp": 2070
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 1.0,
+      "tn": 9959,
+      "fp": 0,
+      "fn": 0,
+      "tp": 9941
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 0.7039958281728701,
+      "tn": 9959,
+      "fp": 0,
+      "fn": 4541,
+      "tp": 5400
+    }
+  },
+  "delta": {
+    "source_val_roc_auc": 0.001315596554202103,
+    "source_val_pr_auc": 0.0013295009155510629,
+    "source_val_f1": -0.629280480534873,
+    "target_test_source_threshold_roc_auc": 0.0,
+    "target_test_source_threshold_pr_auc": 0.0,
+    "target_test_source_threshold_f1": 0.0,
+    "target_test_target_calibrated_roc_auc": 0.0,
+    "target_test_target_calibrated_pr_auc": 0.0,
+    "target_test_target_calibrated_f1": -0.29590356820539954
+  },
+  "target_threshold_before_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.9999035000801086,
+    "tail_size": 7976,
+    "tail_min": 0.9999027252197266,
+    "tail_max": 0.9999997615814209,
+    "max_gap": 3.5762786865234375e-07
+  },
+  "target_threshold_after_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.9994143843650818,
+    "tail_size": 7976,
+    "tail_min": 0.9783254861831665,
+    "tail_max": 0.999518632888794,
+    "max_gap": 7.748603820800781e-05
+  },
+  "experiment_name": "N15_M07_F10__to__N09_M07_F10__binary_vibration",
+  "run_name": "run_002_full_8codesx20"
+}
