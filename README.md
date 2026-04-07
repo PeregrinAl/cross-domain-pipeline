@@ -1,34 +1,103 @@
-# Cross-Domain Anomaly Recognition MVP
+# Generic Adaptation and Evaluation Pipeline for Nonstationary Signals
 
-MVP for cross-domain anomaly recognition in non-stationary signals.
+This repository implements a reproducible experimental pipeline for cross-domain anomaly recognition in nonstationary signals.
 
-The repository implements a small, reproducible experimental pipel:contentReference[oaicite:1]{index=1}y model under domain shift,
-2. partial recovery of target quality with source-free domain adaptation,
-3. usefulness of fused multi-view representations as a basis for adaptation.
+The project is intentionally organized as an **incremental framework**, not as a claim of a new adaptation algorithm. The current emphasis is on building, validating, and extending a generic pipeline that combines:
+
+- raw temporal views,
+- time-frequency views,
+- source-only training,
+- source-free adaptation,
+- threshold calibration,
+- and clear domain-shift evaluation protocols.
+
+---
+
+## Project Status
+
+The repository is currently organized into two stages:
+
+### 1. Synthetic justification stage
+This stage is used to justify the representation and adaptation choices.
+
+It includes:
+- synthetic signal generation,
+- windowing,
+- raw/STFT views,
+- source-only training,
+- minimal source-free adaptation,
+- threshold calibration,
+- synthetic ablation summary,
+- and strict event-level evaluation on synthetic data.
+
+### 2. Real-data vibration stage
+This stage tests whether the same framework transfers to real vibration data without changing the core architecture.
+
+The first real-data pilot currently uses the **Paderborn bearing dataset** in a binary setup:
+- modality: vibration only,
+- task: healthy vs damaged,
+- current condition shift: `N15_M07_F10 -> N09_M07_F10`.
+
+At this stage, the real-data part should be treated as a **pilot protocol**, not as a final benchmark.
+
+---
+
+## Current Position in the Roadmap
+
+### Completed
+- synthetic cross-domain protocol
+- raw/STFT representation branch
+- source-only baselines
+- minimal source-free adaptation
+- threshold calibration
+- synthetic ablation comparison
+- experiment run separation into dedicated folders
+- first real-data vibration pilot setup
+
+### Current focus
+The project is currently in the **first real-data vibration evaluation stage**.
+
+The synthetic stage is retained as a justification layer:
+- `raw_only`, `tfr_only`, and `fused` are compared on synthetic cross-domain transfer,
+- `fused` is used as the main representation in the current real-data stage because it was the strongest synthetic source-only baseline and the only representation currently used for source-free adaptation.
+
+### Planned next steps
+- expand the first Paderborn pilot from a smoke-test split to a fuller condition-level run,
+- repeat the same protocol for additional operating-condition shifts,
+- only after that consider broader extensions such as multi-source, multiclass, or cross-modality transfer.
 
 ---
 
 ## Objective
 
-The goal of this MVP is to show, in one reproducible experiment, that:
+The current project aims to show that a generic adaptation and evaluation pipeline for nonstationary signals can be built and tested in a principled way.
+
+More specifically, the repository currently studies whether:
 
 - a model trained only on the source domain degrades on a shifted target domain,
 - source-free adaptation can recover part of the lost target quality without using source data during adaptation,
-- a fused representation built from raw and time-frequency views is a meaningful basis for adaptation.
+- a fused representation built from raw and STFT views is a strong basis for transfer,
+- and the same framework can move from synthetic data to real vibration data with minimal architectural changes.
 
 ---
 
-## Current Experimental Setup
+## Synthetic Stage
 
-### Pipeline
+### Synthetic pipeline
 
 ```text
-Synthetic signal generation -> Windowing -> Raw/STFT views -> Source-only training -> Source-free adaptation -> Ablation summary
+Synthetic signal generation
+-> Windowing
+-> Raw/STFT views
+-> Source-only training
+-> Source-free adaptation
+-> Ablation summary
+-> Event-level evaluation
 ````
 
-### Data protocol
+### Synthetic data protocol
 
-The repository uses a synthetic toy protocol based on generated `.npy` signals.
+The synthetic setup uses generated `.npy` signals and a record-level CSV.
 
 Each signal-level record contains:
 
@@ -43,6 +112,7 @@ Each window-level row in `data/processed/manifest.csv` contains:
 
 * `path`
 * `label`
+* `record_label`
 * `domain`
 * `record_id`
 * `split`
@@ -50,33 +120,82 @@ Each window-level row in `data/processed/manifest.csv` contains:
 * `start`
 * `end`
 
-### Default window protocol
-
-The current default protocol is:
+### Default synthetic window protocol
 
 * `window_size = 2048`
 * `stride = 512`
 * `window_label_mode = min_fraction`
 * `min_anomaly_fraction = 0.05`
 
-This protocol was selected after a dedicated sweep over window size, stride, and labeling rule.
+### Synthetic domains and splits
 
-### Domains and splits
+* `source/train` — labeled source-domain training windows
+* `source/val` — labeled source-domain validation windows
+* `target/test` — labeled target-domain evaluation windows
+* `target/adapt` — unlabeled target-domain windows used for source-free adaptation
 
-* `source/train` — labeled source-domain training records
-* `source/val` — labeled source-domain validation records
-* `target/test` — labeled target-domain evaluation records
-* `target/adapt` — unlabeled target-domain records used for source-free adaptation
-
-### Target-domain shift
+### Synthetic target-domain shift
 
 The current synthetic target shift includes:
 
-* amplitude / scale shift
-* extra noise
-* trend drift
-* frequency shift
-* temporal warp
+* amplitude and scale shift,
+* extra noise,
+* trend drift,
+* frequency shift,
+* and temporal warp.
+
+---
+
+## Synthetic Baseline Justification
+
+### Representations
+
+* `raw_only` — raw temporal windows
+* `tfr_only` — STFT-based time-frequency representation
+* `fused` — joint representation built from raw and STFT branches
+
+### Synthetic-stage conclusion
+
+The synthetic stage is used as the justification layer for the current real-data direction.
+
+The working interpretation is:
+
+* source-only transfer degrades under domain shift,
+* `fused` is the strongest source-only baseline on the synthetic target,
+* source-free adaptation substantially improves the fused model,
+* therefore `fused` is used as the main representation in the current real-data stage.
+
+The repository keeps a dedicated saved run for this purpose under the synthetic experiment folders.
+
+---
+
+## Real-Data Vibration Pilot
+
+### Current real-data setup
+
+The first real-data pilot uses the Paderborn bearing dataset.
+
+Current pilot characteristics:
+
+* modality: vibration only,
+* task: binary healthy vs damaged,
+* source condition: `N15_M07_F10`,
+* target condition: `N09_M07_F10`.
+
+### Current real-data goal
+
+The current goal is not yet a final benchmark.
+
+Instead, the goal is to verify that:
+
+* the same preprocessing and windowing pipeline works on real vibration data,
+* the same source-only and source-free training scripts can run without architectural changes,
+* and experiments can be stored in condition-specific run folders for later comparison.
+
+### Current limitation
+
+The present Paderborn run should be treated as a pilot rather than a definitive result.
+The next step is to expand the split so that each selected bearing code contributes multiple measurement files while preserving clean separation across train, validation, adaptation, and test.
 
 ---
 
@@ -85,15 +204,16 @@ The current synthetic target shift includes:
 ### Data
 
 * synthetic signal generation
-* anomaly interval storage at signal level
-* window-level labeling from true overlap with anomaly intervals
-* manifest generation for window-based experiments
+* record-level anomaly interval storage
+* window-level labeling from record metadata
+* processed manifest generation for window-based experiments
+* first Paderborn vibration ingestion path via `.mat -> .npy`
 
 ### Representations
 
-* `raw_only` — raw temporal windows
-* `tfr_only` — STFT-based time-frequency representation
-* `fused` — joint representation built from raw and STFT branches
+* `raw_only`
+* `tfr_only`
+* `fused`
 
 ### Models
 
@@ -106,36 +226,46 @@ The current synthetic target shift includes:
 
 * source-only training for `raw_only`, `tfr_only`, and `fused`
 * threshold calibration from source validation
-* source-free adaptation for `fused`
-* ablation summary builder
+* minimal source-free adaptation for `fused`
+* synthetic ablation summary builder
+* synthetic event-level evaluation
+* run-specific output tracking for saved experiments
 
 ---
 
-## Main Result
+## Experiment Tracking
 
-### Ablation summary
+Experiments are saved in run-specific folders rather than overwritten in a single location.
 
-| experiment |        stage | source ROC-AUC | target ROC-AUC | source PR-AUC | target PR-AUC | source F1 | target F1 |
-| ---------- | -----------: | -------------: | -------------: | ------------: | ------------: | --------: | --------: |
-| raw_only   |  source_only |         1.0000 |         0.8976 |        1.0000 |        0.6687 |    1.0000 |    0.1818 |
-| tfr_only   |  source_only |         1.0000 |         0.8333 |        1.0000 |        0.4771 |    1.0000 |    0.1818 |
-| fused      |  source_only |         1.0000 |         0.9184 |        1.0000 |        0.6933 |    1.0000 |    0.1818 |
-| fused      | sfda_minimal |         1.0000 |         0.9792 |        1.0000 |        0.8655 |    1.0000 |    0.6667 |
+Typical layout:
 
-### Interpretation
+```text
+experiments/
+  synthetic/
+    <experiment_name>/
+      <run_name>/
+        config_snapshot.yaml
+        records_snapshot.csv
+        source_only_training/
+        source_free_adaptation/
+  paderborn/
+    <experiment_name>/
+      <run_name>/
+        config_snapshot.yaml
+        records_snapshot.csv
+        source_only_training/
+        source_free_adaptation/
+```
 
-The current MVP supports the following conclusions:
+Each run stores:
 
-* source-only transfer degrades under domain shift,
-* fused multi-view representation is the strongest source-only baseline on the target domain,
-* source-free adaptation substantially improves the fused model on the target domain,
-* the source-target gap becomes much smaller after adaptation.
+* config snapshot,
+* records snapshot,
+* score files,
+* training history,
+* and summary metrics.
 
-In the current setup, the fused model improves from:
-
-* target ROC-AUC: `0.9184 -> 0.9792`
-* target PR-AUC: `0.6933 -> 0.8655`
-* target F1: `0.1818 -> 0.6667`
+This makes synthetic and real-data runs easier to compare and prevents accidental overwriting.
 
 ---
 
@@ -144,22 +274,16 @@ In the current setup, the fused model improves from:
 ```text
 cross-domain-pipeline/
 ├─ configs/
-│  └─ base.yaml
+│  ├─ base.yaml
+│  ├─ paderborn_binary.yaml
+│  └─ synthetic_fused_justification.yaml
 ├─ data/
 │  ├─ raw/
-│  │  ├─ records.csv
-│  │  └─ *.npy
-│  └─ processed/
-│     ├─ manifest.csv
-│     └─ windows/
+│  ├─ processed/
+│  └─ ...
 ├─ experiments/
-│  ├─ source_only_training/
-│  │  ├─ raw_only/
-│  │  ├─ tfr_only/
-│  │  └─ fused/
-│  ├─ source_free_adaptation/
-│  │  └─ fused/
-│  └─ ablation_summary/
+│  ├─ synthetic/
+│  └─ paderborn/
 ├─ src/
 │  ├─ data/
 │  │  ├─ dataset.py
@@ -172,7 +296,10 @@ cross-domain-pipeline/
 │  ├─ prepare_data.py
 │  ├─ train_source_only.py
 │  ├─ adapt_source_free.py
-│  └─ build_ablation_summary.py
+│  ├─ build_ablation_summary.py
+│  ├─ evaluate_event_level.py
+│  └─ build_event_level_summary.py
+├─ tools/
 ├─ requirements.txt
 └─ README.md
 ```
@@ -203,112 +330,131 @@ pip install -r requirements.txt
 
 ## How to Run
 
+## A. Synthetic stage
+
 ### 1. Generate synthetic records
 
 ```bash
 python -m src.prepare_dummy_records
 ```
 
-This creates raw `.npy` signals and `data/raw/records.csv`.
-
-### 2. Build windowed manifest
+### 2. Build the processed manifest
 
 ```bash
-python -m src.prepare_data
+python -m src.prepare_data --config configs/synthetic_fused_justification.yaml
 ```
-
-This creates `data/processed/manifest.csv` and window files in `data/processed/windows/`.
 
 ### 3. Train source-only baselines
 
 ```bash
-python -m src.train_source_only --variant raw_only
-python -m src.train_source_only --variant tfr_only
-python -m src.train_source_only --variant fused
-```
-
-Outputs are written to:
-
-```text
-experiments/source_only_training/
+python -m src.train_source_only --config configs/synthetic_fused_justification.yaml --variant raw_only
+python -m src.train_source_only --config configs/synthetic_fused_justification.yaml --variant tfr_only
+python -m src.train_source_only --config configs/synthetic_fused_justification.yaml --variant fused
 ```
 
 ### 4. Run source-free adaptation for fused
 
 ```bash
-python -m src.adapt_source_free
+python -m src.adapt_source_free --config configs/synthetic_fused_justification.yaml
 ```
 
-Outputs are written to:
-
-```text
-experiments/source_free_adaptation/fused/
-```
-
-### 5. Build ablation summary
+### 5. Build the synthetic ablation summary
 
 ```bash
 python -m src.build_ablation_summary
 ```
 
-Outputs are written to:
+### 6. Optional synthetic event-level evaluation
 
-```text
-experiments/ablation_summary/
+```bash
+python -m src.evaluate_event_level --stage source_only --variant fused --min-iou 0.05
+python -m src.evaluate_event_level --stage sfda_after --variant fused --min-iou 0.05
+python -m src.build_event_level_summary
+```
+
+---
+
+## B. Real-data Paderborn stage
+
+### 1. Prepare raw real-data records
+
+Create:
+
+* converted vibration `.npy` files,
+* and `data/raw/paderborn_records.csv`.
+
+### 2. Build the processed manifest
+
+```bash
+python -m src.prepare_data --config configs/paderborn_binary.yaml
+```
+
+### 3. Train the fused source-only model
+
+```bash
+python -m src.train_source_only --config configs/paderborn_binary.yaml --variant fused
+```
+
+### 4. Run fused source-free adaptation
+
+```bash
+python -m src.adapt_source_free --config configs/paderborn_binary.yaml
 ```
 
 ---
 
 ## Key Output Files
 
-### Source-only
+### Source-only runs
 
-For each variant in `experiments/source_only_training/<variant>/`:
+For each saved run and variant:
 
-* `best_model.pt`
+* `history.csv`
 * `summary.json`
 * `source_val_scores.csv`
 * `target_test_scores.csv`
 
-### Source-free adaptation
+### Source-free adaptation runs
 
-In `experiments/source_free_adaptation/fused/`:
+For each saved fused adaptation run:
 
-* `adapted_model.pt`
-* `summary.json`
 * `adapt_history.csv`
+* `summary.json`
+* `source_val_scores_before.csv`
+* `source_val_scores_after.csv`
 * `target_test_scores_before.csv`
 * `target_test_scores_after.csv`
 
-### Ablation summary
+### Synthetic event-level outputs
 
-In `experiments/ablation_summary/`:
+When event-level evaluation is used:
 
-* `ablation_summary.csv`
-* `target_roc_auc_bar.png`
-* `target_pr_auc_bar.png`
-* `source_vs_target_roc_auc.png`
-* fused before/after comparison plots
+* `summary.json`
+* `matched_events.csv`
+* `missed_events.csv`
+* `false_alarm_events.csv`
+* consolidated event-level summary tables
 
 ---
 
-## Current Scope
+## Scope and Claims
 
-This repository currently covers:
+This repository currently supports the following claims:
 
-* synthetic cross-domain signal protocol,
-* window-level anomaly recognition,
-* source-only baselines,
-* minimal source-free adaptation,
-* quantitative comparison across variants.
+* a generic cross-domain anomaly-recognition pipeline can be built in a reproducible form,
+* synthetic experiments justify the current focus on `fused`,
+* the framework can already be executed on a first real vibration pilot without changing the core architecture.
 
-The next logical extension is event-level evaluation on top of the current window-level pipeline.
+This repository does **not** currently claim:
+
+* a new adaptation algorithm,
+* a final large-scale real-data benchmark,
+* or a completed multi-source / multiclass / cross-modality study.
 
 ---
 
 ## Notes
 
-* The project is intentionally kept small and reproducible.
-* The current protocol is synthetic and designed for MVP validation rather than final benchmarking.
-* The repository is organized around minimal, incremental experiments rather than a large general-purpose framework.
-
+* The project is intentionally developed through small, saved experimental runs.
+* Synthetic experiments are used as a justification stage, not as the final destination.
+* The current real-data stage is a pilot designed to support the next round of condition-level vibration experiments.
