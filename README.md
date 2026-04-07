@@ -13,6 +13,16 @@ The project is intentionally organized as an **incremental framework**, not as a
 
 ---
 
+### Current empirical takeaway
+
+At the current stage, the repository supports a cautious claim:
+representation choice, threshold calibration, and strict evaluation are central parts of the methodology, while source-free adaptation is treated as an optional transfer component whose usefulness depends on the actual domain shift.
+
+Current results show that:
+- on synthetic controlled shift, fused source-only is the strongest baseline and SFDA improves target-side metrics;
+- on the current Paderborn real-data shift, source-only fused already reaches ceiling-level performance, so adaptation is not the main source of gain;
+- therefore the main contribution is not a new adaptation algorithm, but a generic evaluation methodology for nonstationary-signal anomaly recognition.
+
 ## Project Status
 
 The repository is currently organized into two stages:
