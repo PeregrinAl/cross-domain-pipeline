@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 import torch.nn.functional as F
 
@@ -30,6 +31,25 @@ def move_batch_to_device(batch, device):
             moved[key] = value
     return moved
 
+def build_run_root(config) -> Path:
+    outputs = config["outputs"]
+    return (
+        Path(outputs["experiment_root"])
+        / outputs["experiment_name"]
+        / outputs["run_name"]
+    )
+
+
+def save_run_snapshots(run_root: Path, config_path: str, config):
+    run_root.mkdir(parents=True, exist_ok=True)
+
+    config_src = Path(config_path)
+    if config_src.exists() and not (run_root / "config_snapshot.yaml").exists():
+        shutil.copyfile(config_src, run_root / "config_snapshot.yaml")
+
+    records_csv = Path(config["data"]["raw_records_csv"])
+    if records_csv.exists() and not (run_root / "records_snapshot.csv").exists():
+        shutil.copyfile(records_csv, run_root / "records_snapshot.csv")
 
 def build_fused_model(config):
     return SourceOnlyClassifier(
@@ -153,7 +173,9 @@ def evaluate_split(model, loader, device, threshold):
 
 def load_source_only_threshold(config, variant: str = "fused"):
     fallback = float(config["training"]["threshold"])
-    summary_path = Path(config["outputs"]["source_only_dir"]) / variant / "summary.json"
+
+    run_root = build_run_root(config)
+    summary_path = run_root / "source_only_training" / variant / "summary.json"
 
     if not summary_path.exists():
         return fallback
@@ -390,18 +412,14 @@ def adapt_one_epoch(
 
 
 def main():
-    with open("configs/base.yaml", "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
+    args = parse_args()
+    config = load_config(args.config)
 
-    set_seed(config["seed"])
-    device = resolve_device(config["training"].get("device", "auto"))
+    run_root = build_run_root(config)
+    save_run_snapshots(run_root, args.config, config)
 
-    sfda_variant = config["sfda"]["variant"]
-    if sfda_variant != "fused":
-        raise ValueError("This minimal SFDA script currently supports only variant='fused'")
-
-    source_ckpt_path = Path(config["outputs"]["source_only_dir"]) / "fused" / "best.pt"
-    out_dir = Path(config["outputs"]["sfda_dir"]) / "fused"
+    source_ckpt_path = run_root / "source_only_training" / "fused" / "best.pt"
+    out_dir = run_root / "source_free_adaptation" / "fused"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     threshold = load_source_only_threshold(config, variant="fused")
@@ -649,6 +667,8 @@ def main():
         },
         "target_threshold_before_info": target_threshold_before_info,
         "target_threshold_after_info": target_threshold_after_info,
+        "experiment_name": config["outputs"]["experiment_name"],
+        "run_name": config["outputs"]["run_name"],
     }
 
     pd.DataFrame(history_rows).to_csv(out_dir / "adapt_history.csv", index=False)

@@ -1,5 +1,6 @@
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -48,6 +49,25 @@ def resolve_device(config_device: str) -> torch.device:
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(config_device)
 
+def build_run_root(config) -> Path:
+    outputs = config["outputs"]
+    return (
+        Path(outputs["experiment_root"])
+        / outputs["experiment_name"]
+        / outputs["run_name"]
+    )
+
+
+def save_run_snapshots(run_root: Path, args, config):
+    run_root.mkdir(parents=True, exist_ok=True)
+
+    config_src = Path(args.config)
+    if config_src.exists():
+        shutil.copyfile(config_src, run_root / "config_snapshot.yaml")
+
+    records_csv = Path(config["data"]["raw_records_csv"])
+    if records_csv.exists():
+        shutil.copyfile(records_csv, run_root / "records_snapshot.csv")
 
 def build_model(config, variant: str):
     use_raw, use_tfr = VARIANTS[variant]
@@ -229,7 +249,10 @@ def main():
     device = resolve_device(config["training"].get("device", "auto"))
     print("Using device:", device)
 
-    out_dir = Path(config["outputs"]["source_only_dir"]) / args.variant
+    run_root = build_run_root(config)
+    save_run_snapshots(run_root, args, config)
+
+    out_dir = run_root / "source_only_training" / args.variant
     out_dir.mkdir(parents=True, exist_ok=True)
 
     train_loader = build_dataloader(
@@ -358,6 +381,8 @@ def main():
 
     summary = {
         "variant": args.variant,
+        "experiment_name": config["outputs"]["experiment_name"],
+        "run_name": config["outputs"]["run_name"],
         "threshold_config": float(threshold),
         "threshold_used": float(best_threshold),
         "best_threshold_source_val_f1": float(best_threshold),
