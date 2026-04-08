@@ -209,9 +209,7 @@ __marimo__/
 *.pyc
 .venv/
 .ipynb_checkpoints/
-data/raw/
-data/interim/
-data/processed/
+data/
 outputs/
 runs/
 *.pt

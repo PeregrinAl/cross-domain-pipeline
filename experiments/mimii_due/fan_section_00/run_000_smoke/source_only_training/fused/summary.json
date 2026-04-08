@@ -1,0 +1,28 @@
+{
+  "variant": "fused",
+  "experiment_name": "fan_section_00",
+  "run_name": "run_000_smoke",
+  "threshold_config": 0.5,
+  "threshold_used": 0.02740510366857052,
+  "best_threshold_source_val_f1": 0.02740510366857052,
+  "source_val": {
+    "roc_auc": 0.7710324999999999,
+    "pr_auc": 0.7995313186232615,
+    "f1": 0.7120441988950276,
+    "tn": 1086,
+    "fp": 914,
+    "fn": 389,
+    "tp": 1611,
+    "loss": 1.3095549329926726
+  },
+  "target_test": {
+    "roc_auc": 0.68733314,
+    "pr_auc": 0.7563926504744839,
+    "f1": 0.6410536028856639,
+    "tn": 1900,
+    "fp": 3100,
+    "fn": 1179,
+    "tp": 3821,
+    "loss": 1.3160170253954828
+  }
+}
