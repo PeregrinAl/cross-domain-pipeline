@@ -1,0 +1,28 @@
+{
+  "variant": "tfr_only",
+  "experiment_name": "fan_section_00",
+  "run_name": "run_001_supervised_pilot",
+  "threshold_config": 0.5,
+  "threshold_used": 0.01833030767738819,
+  "best_threshold_source_val_f1": 0.01833030767738819,
+  "source_val": {
+    "roc_auc": 0.6742158649364796,
+    "pr_auc": 0.7174967620595438,
+    "f1": 0.6695410140260875,
+    "tn": 171,
+    "fp": 6009,
+    "fn": 46,
+    "tp": 6134,
+    "loss": 1.0780972343890605
+  },
+  "target_test": {
+    "roc_auc": 0.6696567123302019,
+    "pr_auc": 0.7101292279596543,
+    "f1": 0.6659591461613366,
+    "tn": 835,
+    "fp": 30065,
+    "fn": 466,
+    "tp": 30434,
+    "loss": 1.0722121116029502
+  }
+}
