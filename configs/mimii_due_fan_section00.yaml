@@ -55,7 +55,7 @@ outputs:
 sfda:
   variant: fused
   adapt_split: adapt
-  epochs: 10
+  epochs: 5
   lr: 0.0003
   weight_decay: 1.0e-05
   batch_size: 8

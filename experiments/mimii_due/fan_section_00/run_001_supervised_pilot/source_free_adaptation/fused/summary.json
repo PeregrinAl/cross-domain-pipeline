@@ -1,0 +1,94 @@
+{
+  "variant": "fused",
+  "threshold_used_source_val": 0.02334458939731121,
+  "source_anomaly_rate": 0.5,
+  "target_threshold_before": 0.36247506737709045,
+  "target_threshold_after": 0.5394114404916763,
+  "before": {
+    "source_val": {
+      "roc_auc": 0.7338551779935274,
+      "pr_auc": 0.7803269684887566,
+      "f1": 0.6840227798986169,
+      "tn": 1846,
+      "fp": 4334,
+      "fn": 715,
+      "tp": 5465
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.6778857123406752,
+      "pr_auc": 0.7436758124451442,
+      "f1": 0.6587119935866901,
+      "tn": 4077,
+      "fp": 26823,
+      "fn": 2552,
+      "tp": 28348
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.6778857123406752,
+      "pr_auc": 0.7436758124451442,
+      "f1": 0.4286786786786787,
+      "tn": 30405,
+      "fp": 495,
+      "fn": 22335,
+      "tp": 8565
+    }
+  },
+  "after": {
+    "source_val": {
+      "roc_auc": 0.732296582566165,
+      "pr_auc": 0.7763457473798325,
+      "f1": 0.684708261464343,
+      "tn": 1303,
+      "fp": 4877,
+      "fn": 424,
+      "tp": 5756
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.6598054602486358,
+      "pr_auc": 0.7233963858009546,
+      "f1": 0.6607892716846525,
+      "tn": 2481,
+      "fp": 28419,
+      "fn": 1631,
+      "tp": 29269
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.6598054602486358,
+      "pr_auc": 0.7233963858009546,
+      "f1": 0.36175683475888126,
+      "tn": 30580,
+      "fp": 320,
+      "fn": 24006,
+      "tp": 6894
+    }
+  },
+  "delta": {
+    "source_val_roc_auc": -0.0015585954273623637,
+    "source_val_pr_auc": -0.003981221108924071,
+    "source_val_f1": 0.0006854815657261204,
+    "target_test_source_threshold_roc_auc": -0.01808025209203934,
+    "target_test_source_threshold_pr_auc": -0.02027942664418969,
+    "target_test_source_threshold_f1": 0.0020772780979624317,
+    "target_test_target_calibrated_roc_auc": -0.01808025209203934,
+    "target_test_target_calibrated_pr_auc": -0.02027942664418969,
+    "target_test_target_calibrated_f1": -0.06692184391979744
+  },
+  "target_threshold_before_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.36247506737709045,
+    "tail_size": 371,
+    "tail_min": 0.03235701844096184,
+    "tail_max": 0.491538941860199,
+    "max_gap": 0.08972173929214478
+  },
+  "target_threshold_after_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.5394114404916763,
+    "tail_size": 371,
+    "tail_min": 0.03983386978507042,
+    "tail_max": 0.7365805506706238,
+    "max_gap": 0.11972221732139587
+  },
+  "experiment_name": "fan_section_00",
+  "run_name": "run_001_supervised_pilot"
+}
