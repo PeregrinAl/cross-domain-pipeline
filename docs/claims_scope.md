@@ -24,14 +24,17 @@ This repository does not currently claim:
 At the current stage, the results support the following interpretation:
 
 - on synthetic controlled shift, fused source-only is the strongest baseline and source-free adaptation improves target-side metrics;
-- on the current Paderborn pilot shift, adaptation is not the main source of gain;
+- on the current Paderborn pilot shift, target-side performance saturates, so this run should be treated mainly as a pipeline-transfer pilot rather than as an informative representation benchmark;
+- on the current MIMII DUE supervised pilot, target-side performance does not saturate, and representation comparison becomes informative;
+- on the current MIMII DUE supervised pilot, different representations perform best under different metrics, so fused should not be claimed as a universal real-data winner;
+- on the current MIMII DUE supervised pilot, source-free adaptation does not provide a consistent real-data improvement across metrics;
 - therefore the safest contribution is a generic methodology for evaluating anomaly-recognition pipelines on nonstationary signals, including representation choice, optional transfer, threshold calibration, and strict evaluation.
 
 ## What still needs more evidence
 
 The following points still require additional experiments:
 
-- comparison of raw_only, tfr_only, and fused on real-data shifts;
-- a broader matrix of real operating-condition shifts;
-- analysis of when adaptation is actually needed and when source-only transfer is already sufficient;
-- stronger event-level evidence on real data.
+- a broader matrix of real operating-condition shifts and machine domains;
+- stronger evidence on when adaptation is actually useful and when source-only transfer is already sufficient;
+- stronger event-level evidence on real data;
+- longer real-data runs for stability analysis beyond short pilot training schedules.

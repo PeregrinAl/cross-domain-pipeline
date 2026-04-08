@@ -20,7 +20,9 @@ representation choice, threshold calibration, and strict evaluation are central 
 
 Current results show that:
 - on synthetic controlled shift, fused source-only is the strongest baseline and SFDA improves target-side metrics;
-- on the current Paderborn real-data pilot shift, source-only fused already performs very strongly, so adaptation is not the main source of gain in this pilot;
+- on the current Paderborn real-data pilot shift, source-only models already reach near-ceiling target performance, so this pilot is useful mainly as a pipeline-transfer check rather than as an informative target-side benchmark;
+- on the current MIMII DUE supervised pilot, the target split does not saturate, different representations trade off under different metrics, and fused is not a universal winner;
+- on the current MIMII DUE pilot, source-free adaptation for fused does not provide a consistent improvement across metrics;
 - therefore the main contribution is not a new adaptation algorithm, but a generic evaluation methodology for nonstationary-signal anomaly recognition.
 
 ## Project Status
