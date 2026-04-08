@@ -23,18 +23,18 @@ This repository does not currently claim:
 
 At the current stage, the results support the following interpretation:
 
-- on synthetic controlled shift, fused source-only is the strongest baseline and source-free adaptation improves target-side metrics;
-- on the current Paderborn pilot shift, target-side performance saturates, so this run should be treated mainly as a pipeline-transfer pilot rather than as an informative representation benchmark;
-- on the current MIMII DUE supervised pilot, target-side performance does not saturate, and representation comparison becomes informative;
-- on the current MIMII DUE supervised pilot, different representations perform best under different metrics, so fused should not be claimed as a universal real-data winner;
-- on the current MIMII DUE supervised pilot, source-free adaptation does not provide a consistent real-data improvement across metrics;
-- therefore the safest contribution is a generic methodology for evaluating anomaly-recognition pipelines on nonstationary signals, including representation choice, optional transfer, threshold calibration, and strict evaluation.
+- on synthetic controlled shift, `fused` is the strongest source-only baseline and minimal source-free adaptation improves target-side metrics;
+- on the current Paderborn pilot shift, target-side performance is close to saturation, so this stage should be treated as a pipeline-transfer check rather than as the main comparative benchmark;
+- on the current MIMII DUE supervised pilot, `raw_only`, `tfr_only`, and `fused` show different strengths across different metrics, so no universal representation winner should be claimed;
+- on the same MIMII DUE pilot, source-free adaptation does not provide a stable and convincing gain across all target metrics;
+- therefore the safest contribution is a generic methodology for evaluating anomaly-recognition pipelines on nonstationary signals, including representation choice, optional transfer, threshold handling, and strict evaluation.
 
 ## What still needs more evidence
 
 The following points still require additional experiments:
 
-- a broader matrix of real operating-condition shifts and machine domains;
-- stronger evidence on when adaptation is actually useful and when source-only transfer is already sufficient;
-- stronger event-level evidence on real data;
-- longer real-data runs for stability analysis beyond short pilot training schedules.
+- broader real-data comparison of `raw_only`, `tfr_only`, and `fused` across more than one real shift;
+- a broader matrix of real operating-condition and acquisition-condition shifts;
+- stronger evidence for when adaptation is actually needed and when source-only transfer is already sufficient;
+- event-level evidence on real data;
+- validation of the methodology on more than one real signal domain beyond the current pilots.

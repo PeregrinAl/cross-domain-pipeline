@@ -1,3 +1,10 @@
+# Source-only comparison report
+
+This file is an aggregated machine-readable report built from saved `summary.json` files.
+It should be interpreted as a compact comparison table across datasets, runs, and variants.
+For presentation use, extract only the rows relevant to the current experimental story.
+
+
 | dataset              | stage       | variant  | experiment_name                                | run_name                 | summary_path                                                                                                                        | threshold_config | threshold_used | best_threshold_source_val_f1 | source_val_roc_auc | source_val_pr_auc | source_val_f1 | source_val_loss | source_val_tn | source_val_fp | source_val_fn | source_val_tp | target_test_roc_auc | target_test_pr_auc | target_test_f1 | target_test_loss | target_test_tn | target_test_fp | target_test_fn | target_test_tp |
 | -------------------- | ----------- | -------- | ---------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------- | -------------- | ---------------------------- | ------------------ | ----------------- | ------------- | --------------- | ------------- | ------------- | ------------- | ------------- | ------------------- | ------------------ | -------------- | ---------------- | -------------- | -------------- | -------------- | -------------- |
 | mimii_due            | source_only | fused    | fan_section_00                                 | run_000_smoke            | experiments/mimii_due/fan_section_00/run_000_smoke/source_only_training/fused/summary.json                                          | 0.500000         | 0.027405       | 0.027405                     | 0.771032           | 0.799531          | 0.712044      | 1.309555        | 1086          | 914           | 389           | 1611          | 0.687333            | 0.756393           | 0.641054       | 1.316017         | 1900           | 3100           | 1179           | 3821           |

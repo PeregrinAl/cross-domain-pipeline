@@ -15,42 +15,50 @@ The project is intentionally organized as an **incremental framework**, not as a
 
 ### Current empirical takeaway
 
-At the current stage, the repository supports a cautious claim:
-representation choice, threshold calibration, and strict evaluation are central parts of the methodology, while source-free adaptation is treated as an optional transfer component whose usefulness depends on the actual domain shift.
+At the current stage, the repository supports a cautious claim: representation choice, threshold handling, and strict evaluation are central parts of the methodology, while source-free adaptation is treated as an optional transfer component whose usefulness depends on the actual domain shift.
 
 Current results show that:
-- on synthetic controlled shift, fused source-only is the strongest baseline and SFDA improves target-side metrics;
-- on the current Paderborn real-data pilot shift, source-only models already reach near-ceiling target performance, so this pilot is useful mainly as a pipeline-transfer check rather than as an informative target-side benchmark;
-- on the current MIMII DUE supervised pilot, the target split does not saturate, different representations trade off under different metrics, and fused is not a universal winner;
-- on the current MIMII DUE pilot, source-free adaptation for fused does not provide a consistent improvement across metrics;
-- therefore the main contribution is not a new adaptation algorithm, but a generic evaluation methodology for nonstationary-signal anomaly recognition.
+
+- on synthetic controlled shift, `fused` is the strongest source-only baseline and minimal SFDA improves target-side metrics;
+- on the current Paderborn vibration pilot, target-side performance is close to saturation, so this stage should be treated as a pipeline-transfer check rather than as the main comparative benchmark;
+- on the current MIMII DUE supervised pilot, `raw_only`, `tfr_only`, and `fused` show different strengths across different metrics, and `fused` is not a universal winner;
+- on the same MIMII DUE pilot, SFDA does not deliver a stable and convincing improvement across all target metrics;
+- therefore the safest contribution is not a new adaptation algorithm, but a generic and reproducible methodology for anomaly recognition in nonstationary signals, including representation choice, optional transfer, threshold handling, and strict evaluation.
 
 ## Project Status
 
-The repository is currently organized into two stages:
+The repository is currently organized into three empirical layers:
 
 ### 1. Synthetic justification stage
-This stage is used to justify the representation and adaptation choices.
+
+This stage is used to justify the representation and transfer choices in a controlled shift setting.
 
 It includes:
+
 - synthetic signal generation,
 - windowing,
 - raw/STFT views,
 - source-only training,
 - minimal source-free adaptation,
-- threshold calibration,
+- threshold handling,
 - synthetic ablation summary,
 - and strict event-level evaluation on synthetic data.
 
-### 2. Real-data vibration stage
+### 2. Real-data vibration pilot
+
 This stage tests whether the same framework transfers to real vibration data without changing the core architecture.
 
-The first real-data pilot currently uses the **Paderborn bearing dataset** in a binary setup:
-- modality: vibration only,
-- task: healthy vs damaged,
-- current condition shift: `N15_M07_F10 -> N09_M07_F10`.
+The current Paderborn pilot should be treated as a transfer and pipeline-validation stage, not as the main comparative real benchmark, because the target side is close to saturation.
 
-At this stage, the real-data part should be treated as a **pilot protocol**, not as a final benchmark.
+### 3. Real-data acoustic pilot
+
+This stage tests the same methodology on machine-sound data with explicit domain shift.
+
+The current MIMII DUE setup is used as a custom supervised cross-domain pilot:
+
+- it is not the official unsupervised DCASE protocol,
+- it is used here to compare `raw_only`, `tfr_only`, and `fused` on a non-saturated real target split,
+- and it is used to check whether optional SFDA gives a stable gain under this shift.
 
 ---
 
@@ -105,7 +113,7 @@ Synthetic signal generation
 -> Source-free adaptation
 -> Ablation summary
 -> Event-level evaluation
-````
+```
 
 ### Synthetic data protocol
 
@@ -474,3 +482,6 @@ This repository does **not** currently claim:
 ## Scope and Claims
 
 For a stricter boundary between supported claims, excluded claims, and open evidence gaps, see `docs/claims_scope.md`.
+
+- the current evidence supports a careful distinction between settings where adaptation helps and settings where strong source-only transfer is already sufficient;
+- the current MIMII DUE pilot supports a real-data comparison of `raw_only`, `tfr_only`, and `fused`, but does not support a claim that any one of them is universally best.
