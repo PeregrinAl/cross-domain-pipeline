@@ -1,0 +1,28 @@
+{
+  "variant": "fused",
+  "experiment_name": "fan_section_00",
+  "run_name": "run_001_supervised_pilot",
+  "threshold_config": 0.5,
+  "threshold_used": 0.02334458939731121,
+  "best_threshold_source_val_f1": 0.02334458939731121,
+  "source_val": {
+    "roc_auc": 0.7338551779935274,
+    "pr_auc": 0.7803269684887566,
+    "f1": 0.6840227798986169,
+    "tn": 1846,
+    "fp": 4334,
+    "fn": 715,
+    "tp": 5465,
+    "loss": 1.1551631267269935
+  },
+  "target_test": {
+    "roc_auc": 0.6778857123406752,
+    "pr_auc": 0.7436758124451442,
+    "f1": 0.6587119935866901,
+    "tn": 4077,
+    "fp": 26823,
+    "fn": 2552,
+    "tp": 28348,
+    "loss": 1.1272447568118802
+  }
+}
