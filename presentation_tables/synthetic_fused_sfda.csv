@@ -1,0 +1,2 @@
+variant,target_roc_auc,target_pr_auc,target_f1
+fused_after_sfda,0.9791666666666669,0.8654761904761905,0.6666666666666666

@@ -1,0 +1,4 @@
+variant,target_roc_auc,target_pr_auc,target_f1
+fused,1.0,1.0,1.0
+raw_only,1.0,1.0,1.0
+tfr_only,1.0,1.0,0.9995475340606303

@@ -1,0 +1,4 @@
+variant,event_f1_iou_0p05,false_alarms_per_record_iou_0p05
+sfda_after_fused,0.6666666666666666,0.0
+sfda_before_fused,0.6666666666666666,0.0
+source_only_fused,0.0,1.0
