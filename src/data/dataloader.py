@@ -2,11 +2,21 @@ import yaml
 from torch.utils.data import DataLoader
 
 from src.data.dataset import SignalWindowDataset
-from src.data.transforms import Compose, NormalizeRaw, AddSTFT
+from src.data.transforms import Compose, NormalizeRaw, AddSTFT, ApplyPreprocessor
 
 
 def build_transform(config):
     transforms = []
+    preprocessing_cfg = config.get("preprocessing", {})
+    preprocessing_name = preprocessing_cfg.get("name", "none")
+
+    if preprocessing_name != "none":
+        transforms.append(
+            ApplyPreprocessor(
+                name=preprocessing_name,
+                params=preprocessing_cfg.get("params", {}),
+            )
+        )
     representation_cfg = config["representation"]
 
     # Backward-compatible raw normalization handling

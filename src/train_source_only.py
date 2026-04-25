@@ -31,6 +31,12 @@ def parse_args():
         required=True,
         choices=list(VARIANTS.keys()),
     )
+    parser.add_argument(
+        "--preprocessing",
+        type=str,
+        default="none",
+        choices=["none", "prep_base", "prep_filter", "prep_domain_norm"],
+    )
     return parser.parse_args()
 
 
@@ -245,6 +251,12 @@ def main():
     with open(args.config, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
+    if args.preprocessing != "none":
+        config["preprocessing"] = {
+            "name": args.preprocessing,
+            "params": {},
+        }
+
     set_seed(config["seed"])
 
     device = resolve_device(config["training"].get("device", "auto"))
@@ -253,7 +265,11 @@ def main():
     run_root = build_run_root(config, args.variant)
     save_run_snapshots(run_root, args, config)
 
-    out_dir = run_root / "source_only_training" / args.variant
+    if args.preprocessing == "none":
+        out_dir = run_root / "source_only_training" / args.variant
+    else:
+        out_dir = run_root / "source_only_training" / args.preprocessing / args.variant
+
     out_dir.mkdir(parents=True, exist_ok=True)
 
     train_loader = build_dataloader(
@@ -382,6 +398,7 @@ def main():
 
     summary = {
         "variant": args.variant,
+        "preprocessing": args.preprocessing,
         "experiment_name": config["outputs"]["experiment_name"],
         "threshold_config": float(threshold),
         "threshold_used": float(best_threshold),
@@ -397,6 +414,7 @@ def main():
 
     with open(out_dir / "summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
+
 
     print("\nFinal summary")
     print(json.dumps(summary, indent=2, ensure_ascii=False))

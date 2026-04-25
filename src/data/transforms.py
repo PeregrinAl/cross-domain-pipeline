@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 
+import numpy as np
 import torch
 
 
@@ -157,4 +158,54 @@ class Compose:
     def __call__(self, sample: Dict) -> Dict:
         for transform in self.transforms:
             sample = transform(sample)
+        return sample
+    
+
+class ApplyPreprocessor:
+    """
+    Applies a preprocessing method to sample["x_raw"] before representation transforms.
+    Expects sample["x_raw"] with shape [C, L].
+    """
+
+    def __init__(self, name: str, params: dict | None = None):
+        from src.preprocessing import build_preprocessor
+
+        self.name = name
+        self.preprocessor = build_preprocessor(name, params or {})
+
+    def __call__(self, sample: Dict) -> Dict:
+        x = sample["x_raw"]
+
+        if not torch.is_tensor(x):
+            raise TypeError(f"x_raw must be a torch.Tensor, got {type(x)}")
+
+        if x.ndim != 2:
+            raise ValueError(f"x_raw must have shape [C, L], got {x.shape}")
+
+        dtype = x.dtype
+        device = x.device
+
+        x_np = x.detach().cpu().numpy()
+
+        processed_channels = []
+        metadata = {
+            "domain": sample.get("domain"),
+            "record_id": sample.get("record_id"),
+            "split": sample.get("split"),
+            "path": sample.get("path"),
+        }
+
+        for channel in x_np:
+            processed = self.preprocessor(channel, metadata=metadata)
+            processed_channels.append(processed)
+
+        x_processed_np = np.stack(processed_channels, axis=0)
+
+        x_processed = torch.as_tensor(
+            x_processed_np,
+            dtype=dtype,
+            device=device,
+        )
+
+        sample["x_raw"] = x_processed
         return sample

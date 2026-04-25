@@ -1,0 +1,29 @@
+{
+  "variant": "fused",
+  "preprocessing": "prep_filter",
+  "experiment_name": "baseline",
+  "threshold_config": 0.5,
+  "threshold_used": 0.3850362002849579,
+  "best_threshold_source_val_f1": 0.3850362002849579,
+  "source_val": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "f1": 1.0,
+    "tn": 71,
+    "fp": 0,
+    "fn": 0,
+    "tp": 9,
+    "loss": 0.5198664367198944
+  },
+  "target_test": {
+    "roc_auc": 0.9184027777777777,
+    "pr_auc": 0.6933348187759953,
+    "f1": 0.18181818181818182,
+    "tn": 0,
+    "fp": 72,
+    "fn": 0,
+    "tp": 8,
+    "loss": 0.5585836410522461
+  },
+  "run_name": "fused"
+}
