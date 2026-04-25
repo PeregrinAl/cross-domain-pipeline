@@ -1,0 +1,93 @@
+{
+  "variant": "fused",
+  "threshold_used_source_val": 0.38506463170051575,
+  "source_anomaly_rate": 0.1125,
+  "target_threshold_before": 0.4374677836894989,
+  "target_threshold_after": 0.43985380232334137,
+  "before": {
+    "source_val": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 1.0,
+      "tn": 71,
+      "fp": 0,
+      "fn": 0,
+      "tp": 9
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.9184027777777777,
+      "pr_auc": 0.6933348187759953,
+      "f1": 0.18181818181818182,
+      "tn": 0,
+      "fp": 72,
+      "fn": 0,
+      "tp": 8
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.9184027777777777,
+      "pr_auc": 0.6933348187759953,
+      "f1": 0.5454545454545454,
+      "tn": 72,
+      "fp": 0,
+      "fn": 5,
+      "tp": 3
+    }
+  },
+  "after": {
+    "source_val": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 1.0,
+      "tn": 71,
+      "fp": 0,
+      "fn": 0,
+      "tp": 9
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.9791666666666667,
+      "pr_auc": 0.8654761904761905,
+      "f1": 0.18181818181818182,
+      "tn": 0,
+      "fp": 72,
+      "fn": 0,
+      "tp": 8
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.9791666666666667,
+      "pr_auc": 0.8654761904761905,
+      "f1": 0.6666666666666666,
+      "tn": 72,
+      "fp": 0,
+      "fn": 4,
+      "tp": 4
+    }
+  },
+  "delta": {
+    "source_val_roc_auc": 0.0,
+    "source_val_pr_auc": 0.0,
+    "source_val_f1": 0.0,
+    "target_test_source_threshold_roc_auc": 0.06076388888888906,
+    "target_test_source_threshold_pr_auc": 0.17214137170019517,
+    "target_test_source_threshold_f1": 0.0,
+    "target_test_target_calibrated_roc_auc": 0.06076388888888906,
+    "target_test_target_calibrated_pr_auc": 0.17214137170019517,
+    "target_test_target_calibrated_f1": 0.12121212121212122
+  },
+  "target_threshold_before_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.4374677836894989,
+    "tail_size": 32,
+    "tail_min": 0.42057183384895325,
+    "tail_max": 0.44408556818962097,
+    "max_gap": 0.0036847591400146484
+  },
+  "target_threshold_after_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.43985380232334137,
+    "tail_size": 32,
+    "tail_min": 0.42690402269363403,
+    "tail_max": 0.45395129919052124,
+    "max_gap": 0.005951434373855591
+  },
+  "experiment_name": "baseline"
+}

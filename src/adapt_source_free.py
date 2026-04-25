@@ -44,9 +44,8 @@ def move_batch_to_device(batch, device):
 def build_run_root(config) -> Path:
     outputs = config["outputs"]
     return (
-        Path(outputs["experiment_root"])
+        Path(outputs.get("experiment_root", "experiments"))
         / outputs["experiment_name"]
-        / outputs["run_name"]
     )
 
 
@@ -685,8 +684,7 @@ def main():
         },
         "target_threshold_before_info": target_threshold_before_info,
         "target_threshold_after_info": target_threshold_after_info,
-        "experiment_name": config["outputs"]["experiment_name"],
-        "run_name": config["outputs"]["run_name"],
+        "experiment_name": config["outputs"]["experiment_name"]
     }
 
     pd.DataFrame(history_rows).to_csv(out_dir / "adapt_history.csv", index=False)

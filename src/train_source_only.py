@@ -52,9 +52,8 @@ def resolve_device(config_device: str) -> torch.device:
 def build_run_root(config) -> Path:
     outputs = config["outputs"]
     return (
-        Path(outputs["experiment_root"])
+        Path(outputs.get("experiment_root", "experiments"))
         / outputs["experiment_name"]
-        / outputs["run_name"]
     )
 
 
@@ -382,7 +381,6 @@ def main():
     summary = {
         "variant": args.variant,
         "experiment_name": config["outputs"]["experiment_name"],
-        "run_name": config["outputs"]["run_name"],
         "threshold_config": float(threshold),
         "threshold_used": float(best_threshold),
         "best_threshold_source_val_f1": float(best_threshold),
