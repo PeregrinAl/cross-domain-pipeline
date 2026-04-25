@@ -1,12 +1,12 @@
 {
   "variant": "fused",
-  "preprocessing": "prep_filter",
+  "preprocessing": "prep_domain_norm",
   "tfr_type": "stft",
   "variant_run_name": "fused",
   "experiment_name": "baseline",
   "threshold_config": 0.5,
-  "threshold_used": 0.3850362002849579,
-  "best_threshold_source_val_f1": 0.3850362002849579,
+  "threshold_used": 0.3850550949573517,
+  "best_threshold_source_val_f1": 0.3850550949573517,
   "source_val": {
     "roc_auc": 1.0,
     "pr_auc": 1.0,
@@ -15,17 +15,17 @@
     "fp": 0,
     "fn": 0,
     "tp": 9,
-    "loss": 0.5198664367198944
+    "loss": 0.5198887407779693
   },
   "target_test": {
-    "roc_auc": 0.9184027777777777,
-    "pr_auc": 0.6933348187759953,
+    "roc_auc": 0.9166666666666666,
+    "pr_auc": 0.6917963572375337,
     "f1": 0.18181818181818182,
     "tn": 0,
     "fp": 72,
     "fn": 0,
     "tp": 8,
-    "loss": 0.5585836410522461
+    "loss": 0.5586014986038208
   },
   "run_name": "fused"
 }

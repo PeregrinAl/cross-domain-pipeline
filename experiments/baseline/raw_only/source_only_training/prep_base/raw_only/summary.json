@@ -1,12 +1,12 @@
 {
-  "variant": "tfr_only",
+  "variant": "raw_only",
   "preprocessing": "prep_base",
   "tfr_type": "stft",
-  "variant_run_name": "tfr_only",
+  "variant_run_name": "raw_only",
   "experiment_name": "baseline",
   "threshold_config": 0.5,
-  "threshold_used": 0.3267819285392761,
-  "best_threshold_source_val_f1": 0.3267819285392761,
+  "threshold_used": 0.3988287150859833,
+  "best_threshold_source_val_f1": 0.3988287150859833,
   "source_val": {
     "roc_auc": 1.0,
     "pr_auc": 1.0,
@@ -15,17 +15,17 @@
     "fp": 0,
     "fn": 0,
     "tp": 9,
-    "loss": 0.4645236134529114
+    "loss": 0.5426820039749145
   },
   "target_test": {
-    "roc_auc": 0.8333333333333334,
-    "pr_auc": 0.4770833333333333,
+    "roc_auc": 0.8975694444444444,
+    "pr_auc": 0.6686982401656315,
     "f1": 0.18181818181818182,
     "tn": 0,
     "fp": 72,
     "fn": 0,
     "tp": 8,
-    "loss": 0.4991201877593994
+    "loss": 0.5669018149375915
   },
-  "run_name": "tfr_only"
+  "run_name": "raw_only"
 }

@@ -1,0 +1,31 @@
+{
+  "variant": "tfr_only",
+  "preprocessing": "prep_domain_norm",
+  "tfr_type": "cwt",
+  "variant_run_name": "tfr_only_cwt",
+  "experiment_name": "baseline",
+  "threshold_config": 0.5,
+  "threshold_used": 0.03516881912946701,
+  "best_threshold_source_val_f1": 0.03516881912946701,
+  "source_val": {
+    "roc_auc": 0.9874804381846636,
+    "pr_auc": 0.93001443001443,
+    "f1": 0.875,
+    "tn": 71,
+    "fp": 0,
+    "fn": 2,
+    "tp": 7,
+    "loss": 0.40150373615324497
+  },
+  "target_test": {
+    "roc_auc": 0.6961805555555556,
+    "pr_auc": 0.34125113071008595,
+    "f1": 0.0,
+    "tn": 72,
+    "fp": 0,
+    "fn": 8,
+    "tp": 0,
+    "loss": 0.38871191143989564
+  },
+  "run_name": "tfr_only"
+}

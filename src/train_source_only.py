@@ -43,6 +43,10 @@ def parse_args():
         default=None,
         choices=["stft", "cwt"],
     )
+    parser.add_argument("--benchmark-dataset-id", type=str, default=None)
+    parser.add_argument("--benchmark-representation", type=str, default=None)
+    parser.add_argument("--benchmark-adaptation", type=str, default="source_only")
+
     return parser.parse_args()
 
 
@@ -281,10 +285,15 @@ def main():
     if args.variant in {"tfr_only", "fused"} and tfr_type != "stft":
         variant_run_name = f"{args.variant}_{tfr_type}"
 
-    if args.preprocessing == "none":
-        out_dir = run_root / "source_only_training" / variant_run_name
-    else:
-        out_dir = run_root / "source_only_training" / args.preprocessing / variant_run_name
+    out_dir = run_root / "source_only_training"
+
+    if args.benchmark_dataset_id is not None:
+        out_dir = out_dir / args.benchmark_dataset_id
+
+    if args.preprocessing != "none":
+        out_dir = out_dir / args.preprocessing
+
+    out_dir = out_dir / variant_run_name
 
     print("Output directory:", out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -417,6 +426,9 @@ def main():
         "variant": args.variant,
         "preprocessing": args.preprocessing,
         "tfr_type": tfr_type,
+        "dataset_id": args.benchmark_dataset_id,
+        "representation": args.benchmark_representation,
+        "adaptation": args.benchmark_adaptation,
         "variant_run_name": variant_run_name,
         "experiment_name": config["outputs"]["experiment_name"],
         "threshold_config": float(threshold),

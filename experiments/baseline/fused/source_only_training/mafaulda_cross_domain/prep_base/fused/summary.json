@@ -1,7 +1,10 @@
 {
   "variant": "fused",
-  "preprocessing": "prep_filter",
+  "preprocessing": "prep_base",
   "tfr_type": "stft",
+  "dataset_id": "mafaulda_cross_domain",
+  "representation": "fused_multiview",
+  "adaptation": "source_only",
   "variant_run_name": "fused",
   "experiment_name": "baseline",
   "threshold_config": 0.5,
@@ -15,7 +18,7 @@
     "fp": 0,
     "fn": 0,
     "tp": 9,
-    "loss": 0.5198664367198944
+    "loss": 0.5198664486408233
   },
   "target_test": {
     "roc_auc": 0.9184027777777777,

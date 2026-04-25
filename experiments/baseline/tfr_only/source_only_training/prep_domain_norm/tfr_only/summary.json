@@ -1,12 +1,12 @@
 {
   "variant": "tfr_only",
-  "preprocessing": "prep_base",
+  "preprocessing": "prep_domain_norm",
   "tfr_type": "stft",
   "variant_run_name": "tfr_only",
   "experiment_name": "baseline",
   "threshold_config": 0.5,
-  "threshold_used": 0.3267819285392761,
-  "best_threshold_source_val_f1": 0.3267819285392761,
+  "threshold_used": 0.32671770453453064,
+  "best_threshold_source_val_f1": 0.32671770453453064,
   "source_val": {
     "roc_auc": 1.0,
     "pr_auc": 1.0,
@@ -15,7 +15,7 @@
     "fp": 0,
     "fn": 0,
     "tp": 9,
-    "loss": 0.4645236134529114
+    "loss": 0.4644652187824249
   },
   "target_test": {
     "roc_auc": 0.8333333333333334,
@@ -25,7 +25,7 @@
     "fp": 72,
     "fn": 0,
     "tp": 8,
-    "loss": 0.4991201877593994
+    "loss": 0.4990506410598755
   },
   "run_name": "tfr_only"
 }

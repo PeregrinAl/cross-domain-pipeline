@@ -36,8 +36,28 @@ def parse_args():
     parser.add_argument("--config", type=str, default="configs/benchmark_grid.yaml")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--row", type=int, default=None)
+    parser.add_argument("--rows", type=str, default=None)
+    parser.add_argument("--stage-1-all", action="store_true")
+    parser.add_argument("--continue-on-error", action="store_true")
     parser.add_argument("--train-config", type=str, default=None)
     return parser.parse_args()
+
+def parse_rows(rows_arg: str) -> list[int]:
+    rows = []
+
+    for part in rows_arg.split(","):
+        part = part.strip()
+
+        if not part:
+            continue
+
+        if "-" in part:
+            start, end = part.split("-", 1)
+            rows.extend(range(int(start), int(end) + 1))
+        else:
+            rows.append(int(part))
+
+    return rows
 
 
 def build_train_command(row: dict, benchmark_config: dict, train_config_override: str | None):
@@ -73,11 +93,20 @@ def build_train_command(row: dict, benchmark_config: dict, train_config_override
     ]
 
     if tfr_type is not None:
-        cmd.extend(["--tfr-type", tfr_type])
+        cmd += ["--tfr-type", tfr_type]
 
     preprocessing = row["preprocessing"]
     if preprocessing != "none":
-        cmd.extend(["--preprocessing", preprocessing])
+        cmd += ["--preprocessing", preprocessing]
+
+    cmd += [
+        "--benchmark-dataset-id",
+        row["dataset_id"],
+        "--benchmark-representation",
+        row["representation"],
+        "--benchmark-adaptation",
+        row["adaptation"],
+    ]
 
     return cmd
 
@@ -91,15 +120,55 @@ def main():
     grid = build_stage_1_grid(benchmark_config)
     df = pd.DataFrame(grid)
 
-    if args.dry_run or args.row is None:
+    if args.dry_run:
         print(df)
         print(f"\nTotal stage-1 runs: {len(df)}")
         return
 
-    if args.row < 0 or args.row >= len(grid):
-        raise IndexError(f"Row index out of range: {args.row}. Grid size: {len(grid)}")
+    if args.stage_1_all:
+        selected_row_ids = list(range(len(grid)))
+    elif args.rows is not None:
+        selected_row_ids = parse_rows(args.rows)
+    elif args.row is not None:
+        selected_row_ids = [args.row]
+    else:
+        print(df)
+        print(f"\nTotal stage-1 runs: {len(df)}")
+        return
 
-    row = grid[args.row]
+    for row_id in selected_row_ids:
+        if row_id < 0 or row_id >= len(grid):
+            raise IndexError(f"Row index out of range: {row_id}. Grid size: {len(grid)}")
+
+        row = grid[row_id]
+
+        print("\n" + "=" * 80)
+        print(f"Running benchmark row: {row_id}")
+        print(pd.DataFrame([row]))
+
+        cmd = build_train_command(
+            row=row,
+            benchmark_config=benchmark_config,
+            train_config_override=args.train_config,
+        )
+
+        if cmd is None:
+            print(
+                "\nSKIPPED: representation is not implemented in train_source_only yet: "
+                f"{row['representation']}"
+            )
+            continue
+
+        print("\nExecuting:")
+        print(" ".join(cmd))
+
+        try:
+            subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as exc:
+            if args.continue_on_error:
+                print(f"FAILED row {row_id}: {exc}")
+                continue
+            raise
 
     print("Selected benchmark row:")
     print(pd.DataFrame([row]))

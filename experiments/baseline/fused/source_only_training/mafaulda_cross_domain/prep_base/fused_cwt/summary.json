@@ -1,0 +1,34 @@
+{
+  "variant": "fused",
+  "preprocessing": "prep_base",
+  "tfr_type": "cwt",
+  "dataset_id": "mafaulda_cross_domain",
+  "representation": "fused_cwt",
+  "adaptation": "source_only",
+  "variant_run_name": "fused_cwt",
+  "experiment_name": "baseline",
+  "threshold_config": 0.5,
+  "threshold_used": 0.46955686807632446,
+  "best_threshold_source_val_f1": 0.46955686807632446,
+  "source_val": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "f1": 1.0,
+    "tn": 71,
+    "fp": 0,
+    "fn": 0,
+    "tp": 9,
+    "loss": 0.6456775665283203
+  },
+  "target_test": {
+    "roc_auc": 0.9548611111111112,
+    "pr_auc": 0.7680517399267399,
+    "f1": 0.18181818181818182,
+    "tn": 0,
+    "fp": 72,
+    "fn": 0,
+    "tp": 8,
+    "loss": 0.6488472104072571
+  },
+  "run_name": "fused"
+}
