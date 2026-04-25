@@ -1,0 +1,19 @@
+path,label,domain,record_id,split,anomaly_intervals
+data/raw/source_train_normal_0.npy,0,source,src_train_norm_0,train,[]
+data/raw/source_train_normal_1.npy,0,source,src_train_norm_1,train,[]
+data/raw/source_train_normal_2.npy,0,source,src_train_norm_2,train,[]
+data/raw/source_train_normal_3.npy,0,source,src_train_norm_3,train,[]
+data/raw/source_train_anomaly_spike_0.npy,1,source,src_train_anom_spike_0,train,"[[3000, 3180]]"
+data/raw/source_train_anomaly_burst_0.npy,1,source,src_train_anom_burst_0,train,"[[7600, 7920]]"
+data/raw/source_val_normal_0.npy,0,source,src_val_norm_0,val,[]
+data/raw/source_val_normal_1.npy,0,source,src_val_norm_1,val,[]
+data/raw/source_val_anomaly_spike_0.npy,1,source,src_val_anom_spike_0,val,"[[4200, 4380]]"
+data/raw/source_val_anomaly_burst_0.npy,1,source,src_val_anom_burst_0,val,"[[7000, 7320]]"
+data/raw/target_test_normal_0.npy,0,target,tgt_test_norm_0,test,[]
+data/raw/target_test_normal_1.npy,0,target,tgt_test_norm_1,test,[]
+data/raw/target_test_anomaly_spike_0.npy,1,target,tgt_test_anom_spike_0,test,"[[3500, 3720]]"
+data/raw/target_test_anomaly_burst_0.npy,1,target,tgt_test_anom_burst_0,test,"[[8200, 8560]]"
+data/raw/target_adapt_normal_0.npy,0,target,tgt_adapt_norm_0,adapt,[]
+data/raw/target_adapt_normal_1.npy,0,target,tgt_adapt_norm_1,adapt,[]
+data/raw/target_adapt_anomaly_spike_0.npy,1,target,tgt_adapt_anom_spike_0,adapt,"[[5000, 5220]]"
+data/raw/target_adapt_anomaly_burst_0.npy,1,target,tgt_adapt_anom_burst_0,adapt,"[[7600, 7960]]"

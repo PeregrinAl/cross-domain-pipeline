@@ -49,12 +49,14 @@ def resolve_device(config_device: str) -> torch.device:
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(config_device)
 
-def build_run_root(config) -> Path:
-    outputs = config["outputs"]
-    return (
-        Path(outputs.get("experiment_root", "experiments"))
-        / outputs["experiment_name"]
-    )
+def build_run_root(config, variant: str) -> Path:
+    outputs = config.get("outputs", {})
+
+    experiment_root = outputs.get("experiment_root", "experiments")
+    experiment_name = outputs.get("experiment_name", "baseline")
+    run_name = outputs.get("run_name", variant)
+
+    return Path(experiment_root) / experiment_name / run_name
 
 
 def save_run_snapshots(run_root: Path, args, config):
@@ -95,7 +97,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device):
         optimizer.zero_grad()
         outputs = model(batch)
 
-        logits = outputs["logits"]
+        logits = outputs.get("logits")
         labels = batch["label"]
 
         loss = criterion(logits, labels)
@@ -124,8 +126,8 @@ def evaluate_model(model, loader, criterion, device, threshold: float):
 
         outputs = model(batch)
 
-        logits = outputs["logits"]
-        probs = outputs["probs"][:, 1]
+        logits = outputs.get("logits")
+        probs = outputs.get("probs")[:, 1]
         labels = batch["label"]
 
         loss = criterion(logits, labels)
@@ -248,7 +250,7 @@ def main():
     device = resolve_device(config["training"].get("device", "auto"))
     print("Using device:", device)
 
-    run_root = build_run_root(config)
+    run_root = build_run_root(config, args.variant)
     save_run_snapshots(run_root, args, config)
 
     out_dir = run_root / "source_only_training" / args.variant
@@ -386,6 +388,7 @@ def main():
         "best_threshold_source_val_f1": float(best_threshold),
         "source_val": source_val_metrics,
         "target_test": target_test_metrics,
+        "run_name": config.get("outputs", {}).get("run_name", args.variant),
     }
 
     pd.DataFrame(history_rows).to_csv(out_dir / "history.csv", index=False)

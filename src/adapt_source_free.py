@@ -41,12 +41,23 @@ def move_batch_to_device(batch, device):
             moved[key] = value
     return moved
 
+def build_source_run_root(config) -> Path:
+    outputs = config.get("outputs", {})
+
+    experiment_root = outputs.get("experiment_root", "experiments")
+    experiment_name = outputs.get("experiment_name", "baseline")
+    source_run_name = outputs.get("source_run_name", "fused")
+
+    return Path(experiment_root) / experiment_name / source_run_name
+
 def build_run_root(config) -> Path:
-    outputs = config["outputs"]
-    return (
-        Path(outputs.get("experiment_root", "experiments"))
-        / outputs["experiment_name"]
-    )
+    outputs = config.get("outputs", {})
+
+    experiment_root = outputs.get("experiment_root", "experiments")
+    experiment_name = outputs.get("experiment_name", "baseline")
+    run_name = outputs.get("run_name", "fused_sfda")
+
+    return Path(experiment_root) / experiment_name / run_name
 
 
 def save_run_snapshots(run_root: Path, config_path: str, config):
@@ -93,9 +104,9 @@ def compute_branch_prototypes(model, loader, device, normal_label=0):
         batch = move_batch_to_device(batch, device)
         outputs = model(batch)
 
-        raw_embeddings.append(outputs["raw_embedding"])
-        tfr_embeddings.append(outputs["tfr_embedding"])
-        fused_embeddings.append(outputs["embedding"])
+        raw_embeddings.append(outputs.get("raw_embedding"))
+        tfr_embeddings.append(outputs.get("tfr_embedding"))
+        fused_embeddings.append(outputs.get("embedding"))
         labels_all.append(batch["label"])
 
     raw_embeddings = torch.cat(raw_embeddings, dim=0)
@@ -124,7 +135,7 @@ def compute_source_normal_prototype(model, loader, device, normal_label=0):
         batch = move_batch_to_device(batch, device)
         outputs = model(batch)
 
-        embeddings.append(outputs["embedding"])
+        embeddings.append(outputs.get("embedding"))
         labels_all.append(batch["label"])
 
     embeddings = torch.cat(embeddings, dim=0)
@@ -149,7 +160,7 @@ def collect_scores(model, loader, device):
         batch = move_batch_to_device(batch, device)
 
         outputs = model(batch)
-        scores = outputs["anomaly_score"].detach().cpu().numpy()
+        scores = outputs.get("anomaly_score").detach().cpu().numpy()
         labels = raw_batch["label"].detach().cpu().numpy()
 
         batch_size = len(scores)
@@ -311,9 +322,9 @@ def select_pseudo_normal_indices(
         batch = move_batch_to_device(batch, device)
         outputs = model(batch)
 
-        scores = outputs["anomaly_score"].detach().cpu()
-        raw_emb = outputs["raw_embedding"]
-        tfr_emb = outputs["tfr_embedding"]
+        scores = outputs.get("anomaly_score").detach().cpu()
+        raw_emb = outputs.get("raw_embedding")
+        tfr_emb = outputs.get("tfr_embedding")
 
         raw_dist = torch.norm(
             raw_emb - branch_prototypes["raw"].unsqueeze(0),
@@ -400,8 +411,8 @@ def adapt_one_epoch(
         optimizer.zero_grad()
 
         outputs = model(batch)
-        embeddings = outputs["embedding"]
-        logits = outputs["logits"]
+        embeddings = outputs.get("embedding")
+        logits = outputs.get("logits")
 
         proto = source_prototype.unsqueeze(0).expand_as(embeddings)
         loss_align = mse_loss(embeddings, proto)
@@ -434,7 +445,8 @@ def main():
     if sfda_variant != "fused":
         raise ValueError("This minimal SFDA script currently supports only variant='fused'")
 
-    source_ckpt_path = run_root / "source_only_training" / "fused" / "best.pt"
+    source_run_root = build_source_run_root(config)
+    source_ckpt_path = source_run_root / "source_only_training" / "fused" / "best.pt"
     out_dir = run_root / "source_free_adaptation" / "fused"
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -684,7 +696,7 @@ def main():
         },
         "target_threshold_before_info": target_threshold_before_info,
         "target_threshold_after_info": target_threshold_after_info,
-        "experiment_name": config["outputs"]["experiment_name"]
+        "run_name": config.get("outputs", {}).get("run_name", "fused_sfda"),
     }
 
     pd.DataFrame(history_rows).to_csv(out_dir / "adapt_history.csv", index=False)
