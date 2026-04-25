@@ -16,6 +16,7 @@ def build_stage_1_grid(config: dict) -> list[dict]:
             {
                 "stage": "stage_1_screening",
                 "dataset_id": dataset["dataset_id"],
+                "config_path": dataset.get("config_path"),
                 "preprocessing": preprocessing,
                 "representation": representation,
                 "adaptation": adaptation,
