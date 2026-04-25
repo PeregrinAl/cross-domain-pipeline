@@ -25,6 +25,10 @@ REPRESENTATION_TO_TRAIN_ARGS = {
         "variant": "fused",
         "tfr_type": "stft",
     },
+    "fused_cwt": {
+        "variant": "fused",
+        "tfr_type": "cwt",
+    },
 }
 
 def parse_args():

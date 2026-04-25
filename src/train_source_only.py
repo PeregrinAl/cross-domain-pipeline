@@ -286,6 +286,7 @@ def main():
     else:
         out_dir = run_root / "source_only_training" / args.preprocessing / variant_run_name
 
+    print("Output directory:", out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     train_loader = build_dataloader(

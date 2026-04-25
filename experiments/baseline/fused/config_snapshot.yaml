@@ -12,7 +12,13 @@ data:
 representation:
   normalize_raw: true
   raw_normalization: zscore
-
+  cwt_num_scales: 64
+  cwt_min_scale: 1.0
+  cwt_max_scale: 64.0
+  cwt_hop_length: 64
+  cwt_w0: 6.0
+  cwt_log_amplitude: true
+  cwt_normalization: none
   use_tfr: true
   tfr_type: stft
   n_fft: 256

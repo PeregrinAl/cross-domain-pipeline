@@ -15,8 +15,9 @@ benchmark:
       - raw_time
       - stft_spectrogram
       - cwt_scalogram
-      - channel_graph
       - fused_multiview
+      - fused_cwt
+      - channel_graph
 
   stage_2_adaptation:
     top_k_pairs_per_dataset: 2
