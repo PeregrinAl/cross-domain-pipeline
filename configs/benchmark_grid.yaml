@@ -1,0 +1,46 @@
+seed: 42
+
+benchmark:
+  strategy: two_stage
+
+  stage_1_screening:
+    adaptation:
+      - source_only
+    preprocessing:
+      - prep_base
+      - prep_filter
+      - prep_domain_norm
+    representations:
+      - raw_time
+      - stft_spectrogram
+      - cwt_scalogram
+      - channel_graph
+      - fused_multiview
+
+  stage_2_adaptation:
+    top_k_pairs_per_dataset: 2
+    adaptation:
+      - da_grl_adversarial
+      - da_discrepancy
+      - da_source_free_ttt
+
+datasets:
+  - name: rotary_machines
+    dataset_id: mafaulda_cross_domain
+    enabled: true
+
+  - name: physiological_signals
+    dataset_id: ecg_cross_database
+    enabled: true
+
+  - name: wearable_signals
+    dataset_id: pamap2_cross_user
+    enabled: true
+
+metrics:
+  primary:
+    - target_test_pr_auc
+    - target_test_f1
+  secondary:
+    - target_test_roc_auc
+    - source_val_f1

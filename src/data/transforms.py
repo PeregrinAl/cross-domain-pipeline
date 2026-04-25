@@ -67,6 +67,7 @@ class AddSTFT:
         log_amplitude: bool = True,
         power: float = 1.0,
         tfr_normalization: str = "none",
+        normalize_tfr: Optional[bool] = None,
         eps: float = 1e-8,
     ):
         self.n_fft = n_fft
@@ -74,6 +75,10 @@ class AddSTFT:
         self.win_length = win_length if win_length is not None else n_fft
         self.log_amplitude = log_amplitude
         self.power = power
+
+        if normalize_tfr is not None:
+            tfr_normalization = "zscore" if normalize_tfr else "none"
+
         self.tfr_normalization = tfr_normalization
         self.eps = eps
 
