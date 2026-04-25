@@ -37,6 +37,12 @@ def parse_args():
         default="none",
         choices=["none", "prep_base", "prep_filter", "prep_domain_norm"],
     )
+    parser.add_argument(
+        "--tfr-type",
+        type=str,
+        default=None,
+        choices=["stft", "cwt"],
+    )
     return parser.parse_args()
 
 
@@ -251,6 +257,10 @@ def main():
     with open(args.config, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
+    if args.tfr_type is not None:
+        config.setdefault("representation", {})
+        config["representation"]["tfr_type"] = args.tfr_type
+
     if args.preprocessing != "none":
         config["preprocessing"] = {
             "name": args.preprocessing,
@@ -265,10 +275,16 @@ def main():
     run_root = build_run_root(config, args.variant)
     save_run_snapshots(run_root, args, config)
 
+    tfr_type = config.get("representation", {}).get("tfr_type", "stft")
+
+    variant_run_name = args.variant
+    if args.variant in {"tfr_only", "fused"} and tfr_type != "stft":
+        variant_run_name = f"{args.variant}_{tfr_type}"
+
     if args.preprocessing == "none":
-        out_dir = run_root / "source_only_training" / args.variant
+        out_dir = run_root / "source_only_training" / variant_run_name
     else:
-        out_dir = run_root / "source_only_training" / args.preprocessing / args.variant
+        out_dir = run_root / "source_only_training" / args.preprocessing / variant_run_name
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -399,6 +415,8 @@ def main():
     summary = {
         "variant": args.variant,
         "preprocessing": args.preprocessing,
+        "tfr_type": tfr_type,
+        "variant_run_name": variant_run_name,
         "experiment_name": config["outputs"]["experiment_name"],
         "threshold_config": float(threshold),
         "threshold_used": float(best_threshold),

@@ -2,6 +2,7 @@ from typing import Dict, Optional
 
 import numpy as np
 import torch
+import math
 
 
 class NormalizeRaw:
@@ -146,7 +147,113 @@ class AddSTFT:
         sample["x_tfr"] = mag.unsqueeze(0)  # [1, F, T]
         return sample
 
+class AddCWT:
+    """
+    Builds a lightweight CWT-like scalogram from sample["x_raw"].
 
+    Input:
+        sample["x_raw"] shape [C, L]
+
+    Output:
+        sample["x_tfr"] shape [1, S, T]
+    """
+
+    def __init__(
+        self,
+        num_scales: int = 64,
+        min_scale: float = 1.0,
+        max_scale: float = 64.0,
+        hop_length: int = 64,
+        w0: float = 6.0,
+        log_amplitude: bool = True,
+        tfr_normalization: str = "none",
+        eps: float = 1e-8,
+    ):
+        self.num_scales = num_scales
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+        self.hop_length = hop_length
+        self.w0 = w0
+        self.log_amplitude = log_amplitude
+        self.tfr_normalization = tfr_normalization
+        self.eps = eps
+
+        allowed = {"none", "zscore", "robust"}
+        if self.tfr_normalization not in allowed:
+            raise ValueError(
+                f"Unsupported TFR normalization mode: {self.tfr_normalization}"
+            )
+
+    def _normalize_tfr(self, mag: torch.Tensor) -> torch.Tensor:
+        if self.tfr_normalization == "none":
+            return mag
+
+        if self.tfr_normalization == "zscore":
+            return (mag - mag.mean()) / (mag.std() + self.eps)
+
+        if self.tfr_normalization == "robust":
+            mag_flat = mag.reshape(-1)
+            median = mag_flat.median()
+            q1 = torch.quantile(mag_flat, 0.25)
+            q3 = torch.quantile(mag_flat, 0.75)
+            iqr = q3 - q1
+            return (mag - median) / (iqr + self.eps)
+
+        return mag
+
+    def __call__(self, sample: Dict) -> Dict:
+        x = sample["x_raw"]
+
+        if x.ndim != 2:
+            raise ValueError(f"x_raw must have shape [C, L], got {x.shape}")
+
+        # MVP: use first channel, same as AddSTFT
+        x_1d = x[0]
+        n = x_1d.numel()
+
+        x_fft = torch.fft.rfft(x_1d)
+        freqs = torch.fft.rfftfreq(
+            n,
+            d=1.0,
+            device=x_1d.device,
+            dtype=x_1d.dtype,
+        )
+
+        omega = 2.0 * math.pi * freqs
+
+        scales = torch.linspace(
+            self.min_scale,
+            self.max_scale,
+            self.num_scales,
+            device=x_1d.device,
+            dtype=x_1d.dtype,
+        )
+
+        # Morlet-like frequency-domain filters
+        filters = torch.exp(
+            -0.5 * ((scales[:, None] * omega[None, :]) - self.w0).pow(2)
+        )
+
+        coeffs = torch.fft.irfft(
+            x_fft.unsqueeze(0) * filters,
+            n=n,
+            dim=-1,
+        )
+
+        mag = coeffs.abs()
+
+        if self.hop_length > 1:
+            mag = mag[:, :: self.hop_length]
+
+        if self.log_amplitude:
+            mag = torch.log1p(mag)
+
+        mag = self._normalize_tfr(mag)
+
+        sample["x_tfr"] = mag.unsqueeze(0)
+        return sample
+    
+    
 class Compose:
     """
     Simple transform composition.

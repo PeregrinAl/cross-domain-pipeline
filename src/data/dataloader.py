@@ -2,7 +2,7 @@ import yaml
 from torch.utils.data import DataLoader
 
 from src.data.dataset import SignalWindowDataset
-from src.data.transforms import Compose, NormalizeRaw, AddSTFT, ApplyPreprocessor
+from src.data.transforms import Compose, NormalizeRaw, AddSTFT, AddCWT, ApplyPreprocessor
 
 
 def build_transform(config):
@@ -28,23 +28,41 @@ def build_transform(config):
 
     if representation_cfg.get("use_tfr", True):
         tfr_type = representation_cfg.get("tfr_type", "stft")
-        if tfr_type != "stft":
-            raise NotImplementedError(f"Only STFT is supported now, got {tfr_type}")
 
         # Backward-compatible TFR normalization handling
         tfr_normalization = representation_cfg.get("tfr_normalization")
         if tfr_normalization is None:
             tfr_normalization = "zscore" if representation_cfg.get("normalize_tfr", False) else "none"
 
-        transforms.append(
-            AddSTFT(
-                n_fft=representation_cfg["n_fft"],
-                hop_length=representation_cfg["hop_length"],
-                win_length=representation_cfg["win_length"],
-                log_amplitude=representation_cfg["log_amplitude"],
-                tfr_normalization=tfr_normalization,
+        if tfr_type == "stft":
+            transforms.append(
+                AddSTFT(
+                    n_fft=representation_cfg["n_fft"],
+                    hop_length=representation_cfg["hop_length"],
+                    win_length=representation_cfg["win_length"],
+                    log_amplitude=representation_cfg["log_amplitude"],
+                    tfr_normalization=tfr_normalization,
+                )
             )
-        )
+
+        elif tfr_type == "cwt":
+            transforms.append(
+                AddCWT(
+                    num_scales=representation_cfg.get("cwt_num_scales", 64),
+                    min_scale=representation_cfg.get("cwt_min_scale", 1.0),
+                    max_scale=representation_cfg.get("cwt_max_scale", 64.0),
+                    hop_length=representation_cfg.get("cwt_hop_length", 64),
+                    w0=representation_cfg.get("cwt_w0", 6.0),
+                    log_amplitude=representation_cfg.get("cwt_log_amplitude", True),
+                    tfr_normalization=representation_cfg.get(
+                        "cwt_normalization",
+                        tfr_normalization,
+                    ),
+                )
+            )
+
+        else:
+            raise NotImplementedError(f"Unsupported tfr_type: {tfr_type}")
 
     return Compose(transforms)
 

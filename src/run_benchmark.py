@@ -8,12 +8,24 @@ import yaml
 from src.benchmark.grid import build_stage_1_grid
 
 
-REPRESENTATION_TO_VARIANT = {
-    "raw_time": "raw_only",
-    "stft_spectrogram": "tfr_only",
-    "fused_multiview": "fused",
+REPRESENTATION_TO_TRAIN_ARGS = {
+    "raw_time": {
+        "variant": "raw_only",
+        "tfr_type": None,
+    },
+    "stft_spectrogram": {
+        "variant": "tfr_only",
+        "tfr_type": "stft",
+    },
+    "cwt_scalogram": {
+        "variant": "tfr_only",
+        "tfr_type": "cwt",
+    },
+    "fused_multiview": {
+        "variant": "fused",
+        "tfr_type": "stft",
+    },
 }
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -32,10 +44,12 @@ def build_train_command(row: dict, benchmark_config: dict, train_config_override
 
     representation = row["representation"]
 
-    if representation not in REPRESENTATION_TO_VARIANT:
+    if representation not in REPRESENTATION_TO_TRAIN_ARGS:
         return None
 
-    variant = REPRESENTATION_TO_VARIANT[representation]
+    train_args = REPRESENTATION_TO_TRAIN_ARGS[representation]
+    variant = train_args["variant"]
+    tfr_type = train_args["tfr_type"]
 
     train_config = (
         train_config_override
@@ -53,6 +67,9 @@ def build_train_command(row: dict, benchmark_config: dict, train_config_override
         "--variant",
         variant,
     ]
+
+    if tfr_type is not None:
+        cmd.extend(["--tfr-type", tfr_type])
 
     preprocessing = row["preprocessing"]
     if preprocessing != "none":
@@ -94,7 +111,7 @@ def main():
             "\nSKIPPED: representation is not implemented in train_source_only yet: "
             f"{row['representation']}"
         )
-        print("Implemented now: raw_time, stft_spectrogram, fused_multiview")
+        print("Implemented now: raw_time, stft_spectrogram, cwt_scalogram, fused_multiview")        
         return
 
     print("\nExecuting:")
