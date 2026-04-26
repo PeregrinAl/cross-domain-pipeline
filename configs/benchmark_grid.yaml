@@ -29,17 +29,7 @@ benchmark:
 datasets:
   - name: rotary_machines
     dataset_id: mafaulda_cross_domain
-    config_path: configs/base.yaml
-    enabled: true
-
-  - name: physiological_signals
-    dataset_id: ecg_cross_database
-    config_path: configs/base.yaml
-    enabled: true
-
-  - name: wearable_signals
-    dataset_id: pamap2_cross_user
-    config_path: configs/base.yaml
+    config_path: configs/mafaulda_cross_domain.yaml
     enabled: true
 
 metrics:
