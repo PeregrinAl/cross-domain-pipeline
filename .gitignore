@@ -232,7 +232,6 @@ data/processed/
 *.tar.gz
 
 # Experiments: heavy artifacts
-experiments/
 *.pt
 *.pth
 *.ckpt

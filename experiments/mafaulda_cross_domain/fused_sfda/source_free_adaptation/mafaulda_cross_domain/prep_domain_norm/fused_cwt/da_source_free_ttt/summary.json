@@ -1,0 +1,135 @@
+{
+  "variant": "fused",
+  "variant_run_name": "fused_cwt",
+  "preprocessing": "prep_domain_norm",
+  "tfr_type": "cwt",
+  "dataset_id": "mafaulda_cross_domain",
+  "representation": "fused_cwt",
+  "adaptation": "da_source_free_ttt",
+  "threshold_used_source_val": 0.5,
+  "source_anomaly_rate": 0.6666666666666666,
+  "target_threshold_before": 0.9970813095569611,
+  "target_threshold_after": 0.8082655370235443,
+  "before": {
+    "source_val": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 0.9979423868312757,
+      "tn": 962,
+      "fp": 8,
+      "fn": 0,
+      "tp": 1940
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.9226916781804655,
+      "pr_auc": 0.9807194154883792,
+      "f1": 0.8685655456417296,
+      "tn": 2234,
+      "fp": 191,
+      "fn": 2107,
+      "tp": 7593
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.9226916781804655,
+      "pr_auc": 0.9807194154883792,
+      "f1": 0.5595485595485595,
+      "tn": 2425,
+      "fp": 0,
+      "fn": 5932,
+      "tp": 3768
+    }
+  },
+  "after": {
+    "source_val": {
+      "roc_auc": 0.2578015729620576,
+      "pr_auc": 0.6457692334694688,
+      "f1": 0.0,
+      "tn": 970,
+      "fp": 0,
+      "fn": 1940,
+      "tp": 0
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.5582892974811351,
+      "pr_auc": 0.8655450381207755,
+      "f1": 0.005346493933785729,
+      "tn": 2425,
+      "fp": 0,
+      "fn": 9674,
+      "tp": 26
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.5582892974811351,
+      "pr_auc": 0.8655450381207755,
+      "f1": 0.0,
+      "tn": 2425,
+      "fp": 0,
+      "fn": 9700,
+      "tp": 0
+    }
+  },
+  "delta": {
+    "source_val_roc_auc": -0.7421984270379425,
+    "source_val_pr_auc": -0.3542307665305312,
+    "source_val_f1": -0.9979423868312757,
+    "target_test_source_threshold_roc_auc": -0.3644023806993304,
+    "target_test_source_threshold_pr_auc": -0.11517437736760361,
+    "target_test_source_threshold_f1": -0.8632190517079439,
+    "target_test_target_calibrated_roc_auc": -0.3644023806993304,
+    "target_test_target_calibrated_pr_auc": -0.11517437736760361,
+    "target_test_target_calibrated_f1": -0.5595485595485595
+  },
+  "target_threshold_before_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.9970813095569611,
+    "tail_size": 4850,
+    "tail_min": 0.9960689544677734,
+    "tail_max": 1.0,
+    "max_gap": 2.8789043426513672e-05
+  },
+  "target_threshold_after_info": {
+    "mode": "upper_tail_gap",
+    "raw_candidate": 0.8082655370235443,
+    "tail_size": 4850,
+    "tail_min": 0.04884561523795128,
+    "tail_max": 0.8276006579399109,
+    "max_gap": 0.0229150652885437
+  },
+  "run_name": "fused_sfda",
+  "adaptation_status": "rejected",
+  "adaptation_status_reasons": [
+    "source_val_f1_drop=0.997942 > 0.050000",
+    "source_val_pr_auc_drop=0.354231 > 0.050000"
+  ],
+  "final": {
+    "source_val": {
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "f1": 0.9979423868312757,
+      "tn": 962,
+      "fp": 8,
+      "fn": 0,
+      "tp": 1940
+    },
+    "target_test_source_threshold": {
+      "roc_auc": 0.9226916781804655,
+      "pr_auc": 0.9807194154883792,
+      "f1": 0.8685655456417296,
+      "tn": 2234,
+      "fp": 191,
+      "fn": 2107,
+      "tp": 7593
+    },
+    "target_test_target_calibrated": {
+      "roc_auc": 0.9226916781804655,
+      "pr_auc": 0.9807194154883792,
+      "f1": 0.5595485595485595,
+      "tn": 2425,
+      "fp": 0,
+      "fn": 5932,
+      "tp": 3768
+    },
+    "checkpoint_path": "experiments/mafaulda_cross_domain/fused/source_only_training/mafaulda_cross_domain/prep_domain_norm/fused_cwt/best.pt",
+    "scores_prefix": "before"
+  }
+}

@@ -335,6 +335,38 @@ def freeze_for_sfda(model):
         if param.requires_grad:
             print(name)
 
+def decide_adaptation_status(
+    before_source_metrics: dict,
+    after_source_metrics: dict,
+    max_source_val_f1_drop: float = 0.05,
+    max_source_val_pr_auc_drop: float = 0.05,
+) -> tuple[str, list[str]]:
+    reasons = []
+
+    before_f1 = float(before_source_metrics.get("f1", 0.0))
+    after_f1 = float(after_source_metrics.get("f1", 0.0))
+
+    before_pr_auc = float(before_source_metrics.get("pr_auc", 0.0))
+    after_pr_auc = float(after_source_metrics.get("pr_auc", 0.0))
+
+    f1_drop = before_f1 - after_f1
+    pr_auc_drop = before_pr_auc - after_pr_auc
+
+    if f1_drop > max_source_val_f1_drop:
+        reasons.append(
+            f"source_val_f1_drop={f1_drop:.6f} > {max_source_val_f1_drop:.6f}"
+        )
+
+    if pr_auc_drop > max_source_val_pr_auc_drop:
+        reasons.append(
+            f"source_val_pr_auc_drop={pr_auc_drop:.6f} > {max_source_val_pr_auc_drop:.6f}"
+        )
+
+    if reasons:
+        return "rejected", reasons
+
+    return "accepted", ["adaptation passed source validation safety checks"]
+
 
 @torch.no_grad()
 def select_pseudo_normal_indices(
@@ -751,6 +783,33 @@ def main():
         threshold=target_threshold_after,
     )
 
+    adaptation_status, adaptation_status_reasons = decide_adaptation_status(
+        before_source_metrics=before_source_metrics,
+        after_source_metrics=after_source_metrics,
+        max_source_val_f1_drop=config.get("sfda", {}).get("max_source_val_f1_drop", 0.05),
+        max_source_val_pr_auc_drop=config.get("sfda", {}).get(
+            "max_source_val_pr_auc_drop",
+            0.05,
+        ),
+    )
+
+    if adaptation_status == "accepted":
+        final_source_metrics = after_source_metrics
+        final_target_metrics = after_target_metrics
+        final_target_metrics_calibrated = after_target_metrics_calibrated
+        final_checkpoint_path = str(best_ckpt_path)
+        final_scores_prefix = "after"
+    else:
+        final_source_metrics = before_source_metrics
+        final_target_metrics = before_target_metrics
+        final_target_metrics_calibrated = before_target_metrics_calibrated
+        final_checkpoint_path = str(source_ckpt_path)
+        final_scores_prefix = "before"
+
+    print("Adaptation status:", adaptation_status)
+    for reason in adaptation_status_reasons:
+        print(" -", reason)
+
     summary = {
         "variant": args.variant,
         "variant_run_name": variant_run_name,
@@ -787,6 +846,15 @@ def main():
         "target_threshold_before_info": target_threshold_before_info,
         "target_threshold_after_info": target_threshold_after_info,
         "run_name": config.get("outputs", {}).get("run_name", "fused_sfda"),
+        "adaptation_status": adaptation_status,
+        "adaptation_status_reasons": adaptation_status_reasons,
+        "final": {
+            "source_val": final_source_metrics,
+            "target_test_source_threshold": final_target_metrics,
+            "target_test_target_calibrated": final_target_metrics_calibrated,
+            "checkpoint_path": final_checkpoint_path,
+            "scores_prefix": final_scores_prefix,
+        },
     }
 
     pd.DataFrame(history_rows).to_csv(out_dir / "adapt_history.csv", index=False)

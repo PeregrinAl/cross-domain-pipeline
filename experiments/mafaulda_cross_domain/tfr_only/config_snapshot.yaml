@@ -55,8 +55,6 @@ evaluation:
 outputs:
   experiment_root: experiments
   experiment_name: mafaulda_cross_domain
-  run_name: fused_sfda
-  source_run_name: fused
 
 sfda:
   variant: fused
@@ -71,8 +69,6 @@ sfda:
   pseudo_label_weight: 0.1
   consistency_quantile: 0.4
   agreement_margin_quantile: 0.5
-  max_source_val_f1_drop: 0.05
-  max_source_val_pr_auc_drop: 0.05
   
 target_shift:
   amplitude_scale_min: 1.3

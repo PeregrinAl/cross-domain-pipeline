@@ -1,0 +1,34 @@
+{
+  "variant": "raw_only",
+  "preprocessing": "prep_filter",
+  "tfr_type": "stft",
+  "dataset_id": "mafaulda_cross_domain",
+  "representation": "raw_time",
+  "adaptation": "source_only",
+  "variant_run_name": "raw_only",
+  "experiment_name": "mafaulda_cross_domain",
+  "threshold_config": 0.5,
+  "threshold_used": 0.6409484148025513,
+  "best_threshold_source_val_f1": 0.6409484148025513,
+  "source_val": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "f1": 1.0,
+    "tn": 970,
+    "fp": 0,
+    "fn": 0,
+    "tp": 1940,
+    "loss": 0.05454801788011124
+  },
+  "target_test": {
+    "roc_auc": 0.7664316292911042,
+    "pr_auc": 0.9341762780722587,
+    "f1": 0.5033163658799938,
+    "tn": 2422,
+    "fp": 3,
+    "fn": 6437,
+    "tp": 3263,
+    "loss": 1.5592837537472932
+  },
+  "run_name": "raw_only"
+}

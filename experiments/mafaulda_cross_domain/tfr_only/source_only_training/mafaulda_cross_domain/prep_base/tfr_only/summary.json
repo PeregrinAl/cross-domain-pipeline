@@ -1,0 +1,34 @@
+{
+  "variant": "tfr_only",
+  "preprocessing": "prep_base",
+  "tfr_type": "stft",
+  "dataset_id": "mafaulda_cross_domain",
+  "representation": "stft_spectrogram",
+  "adaptation": "source_only",
+  "variant_run_name": "tfr_only",
+  "experiment_name": "mafaulda_cross_domain",
+  "threshold_config": 0.5,
+  "threshold_used": 2.9593984436360188e-05,
+  "best_threshold_source_val_f1": 2.9593984436360188e-05,
+  "source_val": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "f1": 1.0,
+    "tn": 970,
+    "fp": 0,
+    "fn": 0,
+    "tp": 1940,
+    "loss": 3.8401231263919984
+  },
+  "target_test": {
+    "roc_auc": 0.56155687108088,
+    "pr_auc": 0.8676353107941636,
+    "f1": 0.4593241551939925,
+    "tn": 2277,
+    "fp": 148,
+    "fn": 6764,
+    "tp": 2936,
+    "loss": 10.953749433557045
+  },
+  "run_name": "tfr_only"
+}
