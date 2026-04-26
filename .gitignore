@@ -244,3 +244,8 @@ experiments/
 
 # Logs
 *.log
+
+!data/raw/*_records.csv
+!configs/*.yaml
+!tools/*.py
+!reports/benchmark/*.csv
