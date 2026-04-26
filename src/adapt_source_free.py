@@ -26,6 +26,18 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="configs/base.yaml")
+    parser.add_argument("--variant", type=str, default="fused", choices=["fused"])
+    parser.add_argument(
+        "--preprocessing",
+        type=str,
+        default="none",
+        choices=["none", "prep_base", "prep_filter", "prep_domain_norm"],
+    )
+    parser.add_argument("--tfr-type", type=str, default="stft", choices=["stft", "cwt"])
+
+    parser.add_argument("--benchmark-dataset-id", type=str, default=None)
+    parser.add_argument("--benchmark-representation", type=str, default=None)
+    parser.add_argument("--benchmark-adaptation", type=str, default="da_source_free_ttt")
     return parser.parse_args()
 
 def load_config(config_path: str):
@@ -58,6 +70,11 @@ def build_run_root(config) -> Path:
     run_name = outputs.get("run_name", "fused_sfda")
 
     return Path(experiment_root) / experiment_name / run_name
+
+def build_variant_run_name(variant: str, tfr_type: str) -> str:
+    if variant in {"tfr_only", "fused"} and tfr_type != "stft":
+        return f"{variant}_{tfr_type}"
+    return variant
 
 
 def save_run_snapshots(run_root: Path, config_path: str, config):
@@ -189,6 +206,36 @@ def evaluate_split(model, loader, device, threshold):
         threshold=threshold,
     )
     return metrics, scores_df
+
+def load_source_only_threshold_from_path(
+    run_root: Path,
+    variant_run_name: str,
+    preprocessing: str,
+    dataset_id: str | None,
+    fallback: float,
+) -> float:
+    summary_path = run_root / "source_only_training"
+
+    if dataset_id is not None:
+        summary_path = summary_path / dataset_id
+
+    if preprocessing != "none":
+        summary_path = summary_path / preprocessing
+
+    summary_path = summary_path / variant_run_name / "summary.json"
+
+    if not summary_path.exists():
+        return float(fallback)
+
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary = json.load(f)
+
+    return float(
+        summary.get(
+            "threshold_used",
+            summary.get("best_threshold_source_val_f1", fallback),
+        )
+    )
 
 
 def load_source_only_threshold(config, variant: str = "fused"):
@@ -435,6 +482,15 @@ def main():
     args = parse_args()
     config = load_config(args.config)
 
+    config.setdefault("representation", {})
+    config["representation"]["tfr_type"] = args.tfr_type
+
+    if args.preprocessing != "none":
+        config["preprocessing"] = {
+            "name": args.preprocessing,
+            "params": {},
+        }
+
     set_seed(config["seed"])
     device = resolve_device(config["training"].get("device", "auto"))
 
@@ -446,11 +502,39 @@ def main():
         raise ValueError("This minimal SFDA script currently supports only variant='fused'")
 
     source_run_root = build_source_run_root(config)
-    source_ckpt_path = source_run_root / "source_only_training" / "fused" / "best.pt"
-    out_dir = run_root / "source_free_adaptation" / "fused"
+
+    variant_run_name = build_variant_run_name(args.variant, args.tfr_type)
+
+
+    source_ckpt_path = run_root / "source_only_training"
+
+    if args.benchmark_dataset_id is not None:
+        source_ckpt_path = source_ckpt_path / args.benchmark_dataset_id
+
+    if args.preprocessing != "none":
+        source_ckpt_path = source_ckpt_path / args.preprocessing
+
+    source_ckpt_path = source_ckpt_path / variant_run_name / "best.pt"
+
+    out_dir = run_root / "source_free_adaptation"
+
+    if args.benchmark_dataset_id is not None:
+        out_dir = out_dir / args.benchmark_dataset_id
+
+    if args.preprocessing != "none":
+        out_dir = out_dir / args.preprocessing
+
+    out_dir = out_dir / variant_run_name / args.benchmark_adaptation
+
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    threshold = load_source_only_threshold(config, variant="fused")
+    threshold = load_source_only_threshold_from_path(
+        run_root=run_root,
+        variant_run_name=variant_run_name,
+        preprocessing=args.preprocessing,
+        dataset_id=args.benchmark_dataset_id,
+        fallback=float(config["training"]["threshold"]),
+    )
 
     print("Using evaluation/selection threshold:", threshold)
     print("Using device:", device)
@@ -668,7 +752,13 @@ def main():
     )
 
     summary = {
-        "variant": "fused",
+        "variant": args.variant,
+        "variant_run_name": variant_run_name,
+        "preprocessing": args.preprocessing,
+        "tfr_type": args.tfr_type,
+        "dataset_id": args.benchmark_dataset_id,
+        "representation": args.benchmark_representation,
+        "adaptation": args.benchmark_adaptation,
         "threshold_used_source_val": float(threshold),
         "source_anomaly_rate": float(source_anomaly_rate),
         "target_threshold_before": float(target_threshold_before),
