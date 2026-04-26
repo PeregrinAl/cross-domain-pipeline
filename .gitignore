@@ -215,3 +215,32 @@ runs/
 *.pt
 *.pth
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Data: do not commit raw or processed datasets
+data/external/
+data/raw/**/*.npy
+data/raw/**/*_npy/
+data/processed/
+*.zip
+*.tar
+*.tar.gz
+
+# Experiments: heavy artifacts
+experiments/
+*.pt
+*.pth
+*.ckpt
+
+# Local/system
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log

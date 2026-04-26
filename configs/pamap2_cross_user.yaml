@@ -1,14 +1,14 @@
 seed: 42
 
 data:
-  raw_records_csv: data/raw/records.csv
-  processed_dir: data/processed
-  manifest_path: data/processed/manifest.csv
+  raw_records_csv: data/raw/pamap2_records.csv
+  processed_dir: data/processed/pamap2
+  manifest_path: data/processed/pamap2/manifest.csv
   window_size: 2048
   stride: 512
   drop_last: true
   anomaly_intervals_column: anomaly_intervals
-  window_label_mode: min_fraction
+  window_label_mode: any_overlap
   min_anomaly_fraction: 0.05
 
 representation:
@@ -53,10 +53,8 @@ evaluation:
   distance: l2
 
 outputs:
-  source_only_dir: experiments/source_only_training
-  sfda_dir: experiments/source_free_adaptation
   experiment_root: experiments
-  experiment_name: baseline
+  experiment_name: pamap2_cross_user
 
 sfda:
   variant: fused
