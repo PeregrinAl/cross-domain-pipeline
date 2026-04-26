@@ -17,7 +17,6 @@ benchmark:
       - cwt_scalogram
       - fused_multiview
       - fused_cwt
-      - channel_graph
 
   stage_2_adaptation:
     top_k_pairs_per_dataset: 2

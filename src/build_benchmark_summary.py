@@ -48,8 +48,12 @@ def main():
 
     rows = [summary_to_row(path) for path in summaries]
     df = pd.DataFrame(rows)
-    df = df[df["dataset_id"] != "unknown"].copy()
     
+    df = df[df["dataset_id"].notna()].copy()
+    df = df[df["dataset_id"].astype(str).str.strip() != ""].copy()
+    df = df[df["representation"].notna()].copy()
+    df = df[df["representation"].astype(str).str.strip() != ""].copy()
+
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 

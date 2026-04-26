@@ -37,10 +37,10 @@ REPRESENTATION_METHODS = {
         name="cwt_scalogram",
         group="representation",
     ),
-    "channel_graph": MethodSpec(
-        name="channel_graph",
-        group="representation",
-    ),
+    # "channel_graph": MethodSpec(
+    #     name="channel_graph",
+    #     group="representation",
+    # ),
     "fused_multiview": MethodSpec(
         name="fused_multiview",
         group="representation",
