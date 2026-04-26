@@ -55,6 +55,8 @@ evaluation:
 outputs:
   experiment_root: experiments
   experiment_name: mafaulda_cross_domain
+  run_name: fused_sfda
+  source_run_name: fused
 
 sfda:
   variant: fused

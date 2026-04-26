@@ -495,18 +495,18 @@ def main():
     device = resolve_device(config["training"].get("device", "auto"))
 
     run_root = build_run_root(config)
+    source_run_root = build_source_run_root(config)
+
     save_run_snapshots(run_root, args.config, config)
 
     sfda_variant = config["sfda"]["variant"]
     if sfda_variant != "fused":
         raise ValueError("This minimal SFDA script currently supports only variant='fused'")
 
-    source_run_root = build_source_run_root(config)
-
     variant_run_name = build_variant_run_name(args.variant, args.tfr_type)
 
 
-    source_ckpt_path = run_root / "source_only_training"
+    source_ckpt_path = source_run_root / "source_only_training"
 
     if args.benchmark_dataset_id is not None:
         source_ckpt_path = source_ckpt_path / args.benchmark_dataset_id
