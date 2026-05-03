@@ -8,9 +8,7 @@ benchmark:
     adaptation:
       - source_only
     preprocessing:
-      - prep_base
-      - prep_filter
-      - prep_domain_norm
+      - standard
     representations:
       - raw_time
       - stft_spectrogram
@@ -38,3 +36,4 @@ metrics:
   secondary:
     - target_test_roc_auc
     - source_val_f1
+

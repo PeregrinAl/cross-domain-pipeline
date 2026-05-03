@@ -11,6 +11,13 @@ data:
   window_label_mode: min_fraction
   min_anomaly_fraction: 0.05
 
+preprocessing:
+  name: standard
+  params:
+    detrend: false
+    scaler: zscore
+    clip_quantile: null
+    
 representation:
   normalize_raw: true
   raw_normalization: zscore

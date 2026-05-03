@@ -1,62 +1,42 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-import numpy as np
+
+from src.preprocessing.standard import StandardSignalPreprocessor
 
 
 @dataclass
-class BasePreprocessor:
+class BasePreprocessor(StandardSignalPreprocessor):
     normalize: bool = True
-    eps: float = 1e-8
 
-    def __call__(self, x: np.ndarray, metadata: dict | None = None) -> np.ndarray:
-        x = np.asarray(x, dtype=np.float32)
-
-        if self.normalize:
-            mean = float(np.mean(x))
-            std = float(np.std(x))
-            x = (x - mean) / (std + self.eps)
-
-        return x.astype(np.float32)
+    def __post_init__(self) -> None:
+        self.detrend = False
+        self.scaler = "zscore" if self.normalize else "none"
+        super().__post_init__()
 
 
 @dataclass
-class FilterPreprocessor:
+class FilterPreprocessor(StandardSignalPreprocessor):
     normalize: bool = True
-    detrend: bool = True
-    eps: float = 1e-8
 
-    def __call__(self, x: np.ndarray, metadata: dict | None = None) -> np.ndarray:
-        x = np.asarray(x, dtype=np.float32)
-
-        if self.detrend:
-            x = x - np.mean(x)
-
-        if self.normalize:
-            std = float(np.std(x))
-            x = x / (std + self.eps)
-
-        return x.astype(np.float32)
+    def __post_init__(self) -> None:
+        self.scaler = "zscore" if self.normalize else "none"
+        super().__post_init__()
 
 
 @dataclass
-class DomainNormPreprocessor:
+class DomainNormPreprocessor(StandardSignalPreprocessor):
     mode: str = "per_record"
     normalize: bool = True
-    eps: float = 1e-8
 
-    def __call__(self, x: np.ndarray, metadata: dict | None = None) -> np.ndarray:
-        x = np.asarray(x, dtype=np.float32)
-
+    def __post_init__(self) -> None:
         if not self.normalize:
-            return x.astype(np.float32)
+            self.scaler = "none"
+        elif self.mode == "per_record":
+            self.scaler = "robust"
+        elif self.mode == "zscore":
+            self.scaler = "zscore"
+        else:
+            raise ValueError(f"Unknown domain normalization mode: {self.mode}")
 
-        if self.mode == "per_record":
-            median = float(np.median(x))
-            mad = float(np.median(np.abs(x - median)))
-            x = (x - median) / (mad + self.eps)
-            return x.astype(np.float32)
-
-        if self.mode == "zscore":
-            x = (x - np.mean(x)) / (np.std(x) + self.eps)
-            return x.astype(np.float32)
-
-        raise ValueError(f"Unknown domain normalization mode: {self.mode}")
+        super().__post_init__()
