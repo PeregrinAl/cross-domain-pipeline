@@ -3,7 +3,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from cross_domain_pipeline.api import prepare_windows, profile_data, train_source_only
+from cross_domain_pipeline.api import (
+    plan_benchmark,
+    prepare_windows,
+    profile_data,
+    train_source_only,
+)
 from cross_domain_pipeline.runner import BenchmarkRunner
 
 
@@ -28,6 +33,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     profile_parser.add_argument("--max-files", type=int, default=200)
     profile_parser.add_argument("--output", default=None)
+
+    plan_parser = subparsers.add_parser(
+        "plan-benchmark",
+        help="Build an evidence-constrained benchmark plan.",
+    )
+    plan_parser.add_argument("--config", required=True)
+    plan_parser.add_argument(
+        "--source",
+        default="auto",
+        choices=["auto", "raw", "manifest"],
+    )
+    plan_parser.add_argument(
+        "--mode",
+        default="compact",
+        choices=["compact", "extended"],
+    )
+    plan_parser.add_argument("--max-files", type=int, default=200)
+    plan_parser.add_argument("--max-candidates", type=int, default=12)
+    plan_parser.add_argument("--include-research-only", action="store_true")
+    plan_parser.add_argument("--output", default=None)
 
     prepare_parser = subparsers.add_parser(
         "prepare-windows",
@@ -73,6 +98,28 @@ def main() -> None:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(text, encoding="utf-8")
             print(f"Data profile saved to: {output_path}")
+        else:
+            print(text)
+
+        return
+
+    if args.command == "plan-benchmark":
+        plan = plan_benchmark(
+            config=args.config,
+            source=args.source,
+            max_files=args.max_files,
+            mode=args.mode,
+            max_candidates=args.max_candidates,
+            include_research_only=args.include_research_only,
+        )
+
+        text = plan.to_json()
+
+        if args.output is not None:
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(text, encoding="utf-8")
+            print(f"Benchmark plan saved to: {output_path}")
         else:
             print(text)
 

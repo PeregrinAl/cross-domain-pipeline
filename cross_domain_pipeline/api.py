@@ -7,7 +7,8 @@ from pathlib import Path
 import yaml
 
 from cross_domain_pipeline.config import PipelineConfig
-from cross_domain_pipeline.model_selection.data_profile import DataProfile, profile_from_config
+from cross_domain_pipeline.model_selection.benchmark_plan import build_benchmark_plan
+from cross_domain_pipeline.model_selection.data_profile import profile_from_config
 
 
 def _load_config(config: str | Path | PipelineConfig) -> PipelineConfig:
@@ -42,13 +43,35 @@ def profile_data(
     config: str | Path | PipelineConfig,
     source: str = "auto",
     max_files: int = 200,
-) -> DataProfile:
+):
     cfg = _load_config(config)
 
     return profile_from_config(
         config=cfg,
         source=source,
         max_files=max_files,
+    )
+
+
+def plan_benchmark(
+    config: str | Path | PipelineConfig,
+    source: str = "auto",
+    max_files: int = 200,
+    mode: str = "compact",
+    max_candidates: int = 12,
+    include_research_only: bool = False,
+):
+    profile = profile_data(
+        config=config,
+        source=source,
+        max_files=max_files,
+    )
+
+    return build_benchmark_plan(
+        profile=profile,
+        mode=mode,
+        max_candidates=max_candidates,
+        include_research_only=include_research_only,
     )
 
 
