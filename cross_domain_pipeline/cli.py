@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from cross_domain_pipeline.api import (
+    execute_plan,
     plan_benchmark,
     prepare_windows,
     profile_data,
@@ -72,6 +73,28 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["auto", "raw", "manifest"],
     )
     classical_parser.add_argument("--output-dir", default=None)
+
+
+    execute_parser = subparsers.add_parser(
+        "execute-plan",
+        help="Execute benchmark plan. Classical candidates are run; neural candidates are marked as not implemented.",
+    )
+    execute_parser.add_argument("--config", required=True)
+    execute_parser.add_argument("--plan", default=None)
+    execute_parser.add_argument("--output-dir", default="experiments/benchmark_execution")
+    execute_parser.add_argument(
+        "--source",
+        default="auto",
+        choices=["auto", "raw", "manifest"],
+    )
+    execute_parser.add_argument(
+        "--mode",
+        default="compact",
+        choices=["compact", "extended"],
+    )
+    execute_parser.add_argument("--max-files", type=int, default=200)
+    execute_parser.add_argument("--max-candidates", type=int, default=12)
+    execute_parser.add_argument("--dry-run", action="store_true")
 
 
     prepare_parser = subparsers.add_parser(
@@ -154,6 +177,21 @@ def main() -> None:
         )
         return
     
+
+    if args.command == "execute-plan":
+        execute_plan(
+            config=args.config,
+            plan_path=args.plan,
+            output_dir=args.output_dir,
+            source=args.source,
+            mode=args.mode,
+            max_files=args.max_files,
+            max_candidates=args.max_candidates,
+            dry_run=args.dry_run,
+        )
+        return
+    
+
     if args.command == "prepare-windows":
         manifest = prepare_windows(args.config)
         print("Processed manifest created")

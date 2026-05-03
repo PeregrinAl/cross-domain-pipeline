@@ -46,4 +46,5 @@ packages = [
   "cross_domain_pipeline",
   "cross_domain_pipeline.model_selection",
   "cross_domain_pipeline.classical",
+  "cross_domain_pipeline.benchmark",
 ]

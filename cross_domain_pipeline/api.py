@@ -121,6 +121,46 @@ def train_classical(
 
     return subprocess.run(command, check=True)
 
+def execute_plan(
+    config: str | Path | PipelineConfig,
+    plan_path: str | Path | None = None,
+    output_dir: str | Path = "experiments/benchmark_execution",
+    source: str = "auto",
+    mode: str = "compact",
+    max_files: int = 200,
+    max_candidates: int = 12,
+    dry_run: bool = False,
+) -> subprocess.CompletedProcess:
+    cfg = _load_config(config)
+    config_path = cfg.require_path()
+
+    command = [
+        sys.executable,
+        "-m",
+        "cross_domain_pipeline.benchmark.execute_plan",
+        "--config",
+        str(config_path),
+        "--output-dir",
+        str(output_dir),
+        "--source",
+        source,
+        "--mode",
+        mode,
+        "--max-files",
+        str(max_files),
+        "--max-candidates",
+        str(max_candidates),
+    ]
+
+    if plan_path is not None:
+        command.extend(["--plan", str(plan_path)])
+
+    if dry_run:
+        command.append("--dry-run")
+
+    return subprocess.run(command, check=True)
+
+
 def load_config_dict(path: str | Path) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
