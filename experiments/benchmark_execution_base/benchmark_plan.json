@@ -1,0 +1,81 @@
+{
+  "mode": "compact",
+  "source_csv": "data/raw/records.csv",
+  "source_type": "raw_records",
+  "n_rows": 18,
+  "n_records": 18,
+  "n_windows": 0,
+  "likely_multichannel": false,
+  "recommended_model_families": [
+    "statistical_threshold",
+    "pca_reconstruction",
+    "isolation_forest",
+    "conv1d_autoencoder",
+    "tfr_autoencoder",
+    "fusion_autoencoder",
+    "tcn_prediction"
+  ],
+  "recommended_adaptation_methods": [
+    "none",
+    "threshold_recalibration",
+    "sfda_prototype",
+    "contrastive_alignment"
+  ],
+  "candidates": [
+    {
+      "model": "statistical_threshold",
+      "family": "statistical_classical",
+      "tier": "sanity_baseline",
+      "representation": "handcrafted",
+      "adaptation": "threshold_recalibration",
+      "reason": "Cheap sanity baseline."
+    },
+    {
+      "model": "pca_reconstruction",
+      "family": "statistical_classical",
+      "tier": "sanity_baseline",
+      "representation": "handcrafted",
+      "adaptation": "threshold_recalibration",
+      "reason": "Cheap sanity baseline."
+    },
+    {
+      "model": "pca_reconstruction",
+      "family": "statistical_classical",
+      "tier": "sanity_baseline",
+      "representation": "raw_only",
+      "adaptation": "threshold_recalibration",
+      "reason": "Cheap sanity baseline."
+    },
+    {
+      "model": "isolation_forest",
+      "family": "statistical_classical",
+      "tier": "sanity_baseline",
+      "representation": "handcrafted",
+      "adaptation": "none",
+      "reason": "Cheap sanity baseline."
+    },
+    {
+      "model": "isolation_forest",
+      "family": "statistical_classical",
+      "tier": "sanity_baseline",
+      "representation": "handcrafted",
+      "adaptation": "threshold_recalibration",
+      "reason": "Cheap sanity baseline."
+    },
+    {
+      "model": "conv1d_autoencoder",
+      "family": "reconstruction_deep",
+      "tier": "core",
+      "representation": "raw_only",
+      "adaptation": "none",
+      "reason": "Core raw-signal reconstruction candidate."
+    }
+  ],
+  "excluded": {
+    "graph_hybrid": "No sufficiently strong multichannel relational prior was detected.",
+    "patch_transformer": "Transformer is not recommended unless long context and enough windows are available.",
+    "foundation_model": "Research-only extension, not part of the MVP.",
+    "diffusion_model": "Research-only extension, not part of the MVP.",
+    "llm_detector": "LLM is suitable for reporting, not as the core detector."
+  }
+}

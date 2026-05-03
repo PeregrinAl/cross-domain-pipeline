@@ -1,0 +1,10 @@
+{
+  "roc_auc": 0.75,
+  "pr_auc": 0.8166666666666667,
+  "best_f1": 0.8,
+  "threshold": 73.53767395019531,
+  "method": "pca_reconstruction",
+  "csv_path": "data/raw/records.csv",
+  "n_train_normal": 4,
+  "n_eval": 8
+}

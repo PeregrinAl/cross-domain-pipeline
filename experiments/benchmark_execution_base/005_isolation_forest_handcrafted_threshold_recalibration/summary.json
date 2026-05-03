@@ -1,0 +1,10 @@
+{
+  "roc_auc": 0.6875,
+  "pr_auc": 0.7333333333333333,
+  "best_f1": 0.8,
+  "threshold": 0.4792291973251365,
+  "method": "isolation_forest",
+  "csv_path": "data/raw/records.csv",
+  "n_train_normal": 4,
+  "n_eval": 8
+}
