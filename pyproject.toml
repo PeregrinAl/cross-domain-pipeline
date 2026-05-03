@@ -6,7 +6,42 @@ build-backend = "setuptools.build_meta"
 name = "cross-domain-pipeline"
 version = "0.1.0"
 description = "Benchmark pipeline for cross-domain anomaly recognition in nonstationary signals"
+readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
 
-[tool.setuptools.packages.find]
-include = ["src*", "cross_domain_pipeline*"]
+dependencies = [
+  "numpy",
+  "scipy",
+  "pandas",
+  "matplotlib",
+  "scikit-learn",
+  "torch",
+  "pyyaml",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build",
+  "twine",
+  "pytest",
+  "ruff",
+]
+
+audio = [
+  "torchaudio",
+]
+
+notebooks = [
+  "jupyter",
+  "ipykernel",
+]
+
+[project.scripts]
+cdp = "cross_domain_pipeline.cli:main"
+
+[tool.setuptools]
+packages = [
+  "cross_domain_pipeline",
+]
