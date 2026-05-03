@@ -1,0 +1,68 @@
+{
+  "source_csv": "data/raw/records.csv",
+  "source_type": "raw_records",
+  "n_rows": 18,
+  "n_records": 18,
+  "n_windows": 0,
+  "domains": [
+    "source",
+    "target"
+  ],
+  "splits": [
+    "adapt",
+    "test",
+    "train",
+    "val"
+  ],
+  "labels": [
+    0,
+    1
+  ],
+  "class_balance": {
+    "0": 10,
+    "1": 8
+  },
+  "has_labels": true,
+  "has_anomaly_intervals": true,
+  "has_source_domain": true,
+  "has_target_domain": true,
+  "has_unlabeled_target_adapt": true,
+  "n_sampled_arrays": 18,
+  "signal_ndim_values": [
+    1
+  ],
+  "n_channels_min": 1,
+  "n_channels_max": 1,
+  "length_min": 12000,
+  "length_median": 12000.0,
+  "length_max": 12000,
+  "stationarity_score": 0.9471888864999557,
+  "periodicity_score": 0.10491024371650484,
+  "spectral_concentration": 0.02055980798064007,
+  "channel_correlation_score": null,
+  "source_target_shift_score": 1.5758912124089839,
+  "likely_multichannel": false,
+  "long_context_required": true,
+  "recommended_model_families": [
+    "statistical_threshold",
+    "pca_reconstruction",
+    "isolation_forest",
+    "conv1d_autoencoder",
+    "tfr_autoencoder",
+    "fusion_autoencoder",
+    "tcn_prediction"
+  ],
+  "recommended_adaptation_methods": [
+    "none",
+    "threshold_recalibration",
+    "sfda_prototype",
+    "contrastive_alignment"
+  ],
+  "excluded_model_families": {
+    "graph_hybrid": "No sufficiently strong multichannel relational prior was detected.",
+    "patch_transformer": "Transformer is not recommended unless long context and enough windows are available.",
+    "foundation_model": "Research-only extension, not part of the MVP.",
+    "diffusion_model": "Research-only extension, not part of the MVP.",
+    "llm_detector": "LLM is suitable for reporting, not as the core detector."
+  }
+}

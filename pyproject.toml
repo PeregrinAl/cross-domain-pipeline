@@ -44,4 +44,5 @@ cdp = "cross_domain_pipeline.cli:main"
 [tool.setuptools]
 packages = [
   "cross_domain_pipeline",
+  "cross_domain_pipeline.model_selection",
 ]

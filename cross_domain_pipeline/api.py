@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from cross_domain_pipeline.config import PipelineConfig
+from cross_domain_pipeline.model_selection.data_profile import DataProfile, profile_from_config
 
 
 def _load_config(config: str | Path | PipelineConfig) -> PipelineConfig:
@@ -35,6 +36,20 @@ def prepare_windows(config: str | Path | PipelineConfig):
     )
 
     return manifest
+
+
+def profile_data(
+    config: str | Path | PipelineConfig,
+    source: str = "auto",
+    max_files: int = 200,
+) -> DataProfile:
+    cfg = _load_config(config)
+
+    return profile_from_config(
+        config=cfg,
+        source=source,
+        max_files=max_files,
+    )
 
 
 def train_source_only(

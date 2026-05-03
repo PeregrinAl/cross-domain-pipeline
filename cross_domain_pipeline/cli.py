@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
-from cross_domain_pipeline.api import prepare_windows, train_source_only
+from cross_domain_pipeline.api import prepare_windows, profile_data, train_source_only
 from cross_domain_pipeline.runner import BenchmarkRunner
 
 
@@ -13,6 +14,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    profile_parser = subparsers.add_parser(
+        "profile-data",
+        help="Build a lightweight data profile and recommended candidate set.",
+    )
+    profile_parser.add_argument("--config", required=True)
+    profile_parser.add_argument(
+        "--source",
+        default="auto",
+        choices=["auto", "raw", "manifest"],
+        help="Use raw records CSV, processed manifest, or auto-detect.",
+    )
+    profile_parser.add_argument("--max-files", type=int, default=200)
+    profile_parser.add_argument("--output", default=None)
 
     prepare_parser = subparsers.add_parser(
         "prepare-windows",
@@ -43,6 +58,25 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.command == "profile-data":
+        profile = profile_data(
+            config=args.config,
+            source=args.source,
+            max_files=args.max_files,
+        )
+
+        text = profile.to_json()
+
+        if args.output is not None:
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(text, encoding="utf-8")
+            print(f"Data profile saved to: {output_path}")
+        else:
+            print(text)
+
+        return
 
     if args.command == "prepare-windows":
         manifest = prepare_windows(args.config)
