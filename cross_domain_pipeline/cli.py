@@ -7,6 +7,7 @@ from cross_domain_pipeline.api import (
     plan_benchmark,
     prepare_windows,
     profile_data,
+    train_classical,
     train_source_only,
 )
 from cross_domain_pipeline.runner import BenchmarkRunner
@@ -53,6 +54,25 @@ def build_parser() -> argparse.ArgumentParser:
     plan_parser.add_argument("--max-candidates", type=int, default=12)
     plan_parser.add_argument("--include-research-only", action="store_true")
     plan_parser.add_argument("--output", default=None)
+
+
+    classical_parser = subparsers.add_parser(
+        "train-classical",
+        help="Train a classical anomaly detection baseline without epochs.",
+    )
+    classical_parser.add_argument("--config", required=True)
+    classical_parser.add_argument(
+        "--method",
+        required=True,
+        choices=["statistical_threshold", "pca_reconstruction", "isolation_forest"],
+    )
+    classical_parser.add_argument(
+        "--source",
+        default="auto",
+        choices=["auto", "raw", "manifest"],
+    )
+    classical_parser.add_argument("--output-dir", default=None)
+
 
     prepare_parser = subparsers.add_parser(
         "prepare-windows",
@@ -125,6 +145,15 @@ def main() -> None:
 
         return
 
+    if args.command == "train-classical":
+        train_classical(
+            config=args.config,
+            method=args.method,
+            source=args.source,
+            output_dir=args.output_dir,
+        )
+        return
+    
     if args.command == "prepare-windows":
         manifest = prepare_windows(args.config)
         print("Processed manifest created")

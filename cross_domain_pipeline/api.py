@@ -95,7 +95,33 @@ def train_source_only(
         check=True,
     )
 
+def train_classical(
+    config: str | Path | PipelineConfig,
+    method: str,
+    source: str = "auto",
+    output_dir: str | Path | None = None,
+) -> subprocess.CompletedProcess:
+    cfg = _load_config(config)
+    config_path = cfg.require_path()
+
+    command = [
+        sys.executable,
+        "-m",
+        "cross_domain_pipeline.classical.train_classical",
+        "--config",
+        str(config_path),
+        "--method",
+        method,
+        "--source",
+        source,
+    ]
+
+    if output_dir is not None:
+        command.extend(["--output-dir", str(output_dir)])
+
+    return subprocess.run(command, check=True)
 
 def load_config_dict(path: str | Path) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+    
